@@ -1,6 +1,19 @@
-mod test_mat1x3;
-mod test_mat1x4;
-mod test_mat3;
-mod test_mat3x1;
-mod test_mat4;
-mod test_mat4x1;
+pub mod test_mat3x1;
+pub mod test_mat1x3;
+pub mod test_mat4x1;
+pub mod test_mat1x4;
+pub mod test_mat4;
+pub mod test_mat3;
+pub mod test_quat;
+pub mod test_bound;
+pub mod test_intersect_ray_ray;
+pub mod test_intersect_ray_point;
+pub mod test_intersect_ray_sphere;
+pub mod test_intersect_ray_plane;
+pub mod test_intersect_sphere_sphere;
+pub mod test_intersect_sphere_point;
+pub mod test_intersect_sphere_plane;
+pub mod test_intersect_plane_point;
+pub mod test_intersect_point_point;
+pub mod test_intersect_gjk;
+
