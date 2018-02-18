@@ -2,6 +2,7 @@ pub mod i_comparable;
 pub mod i_bound;
 pub mod i_shape;
 pub mod i_vicinity;
+pub mod i_intersect;
 
 pub mod quat;
 pub mod dualquat;
