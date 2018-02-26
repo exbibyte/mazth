@@ -35,7 +35,11 @@ macro_rules! define_quat {
                 Quat { _x: 0 as $v_type, _y: 0 as $v_type, _z: 0 as $v_type, _w: 1 as $v_type }
             }
             #[allow(dead_code)]
-            pub fn init_from_vals( x: $v_type, y:$v_type, z:$v_type, w: $v_type ) -> Quat< $v_type > {
+            pub fn init_from_vals_raw( x: $v_type, y:$v_type, z:$v_type, w: $v_type ) -> Quat< $v_type > {
+                Quat { _x: x, _y: y, _z: z, _w: w }
+            }
+            #[allow(dead_code)]
+            pub fn init_from_vals_normalize( x: $v_type, y:$v_type, z:$v_type, w: $v_type ) -> Quat< $v_type > {
                 let q = Quat { _x: x, _y: y, _z: z, _w: w };
                 q.normalize()
             }
