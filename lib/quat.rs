@@ -196,8 +196,11 @@ macro_rules! define_quat {
             #[allow(dead_code)]
             pub fn normalize( & self ) -> Quat< $v_type > {
                 let l = self.length();
-                assert!( l != 0 as $v_type );
-                Quat { _x: self._x/l, _y: self._y/l, _z: self._z/l, _w: self._w/l }
+                if l > 0. {
+                    Quat { _x: self._x/l, _y: self._y/l, _z: self._z/l, _w: self._w/l }
+                } else {
+                    panic!( "quat normalization unsuccessful." );
+                }
             }
             #[allow(dead_code)]
             pub fn ln( & self ) -> Quat< $v_type > {

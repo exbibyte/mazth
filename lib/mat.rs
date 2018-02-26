@@ -13,6 +13,8 @@ use std::ops::Mul;
 
 use i_comparable;
 
+//todo implemeent from traits for transforming matrices of different sizes
+
 #[derive(Debug, Copy, Clone)]
 pub struct Mat2x1 < T > where T: Copy + Clone {
     pub _val: [ T; 2 ],

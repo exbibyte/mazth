@@ -1,12 +1,12 @@
 [package]
 name = "mazth"
-version = "0.1.0"
+version = "0.1.2"
 authors = ["Yuan Liu <yuan6liu@gmail.com>"]
 description = "Matrix utilities."
 repository = "https://github.com/clearlycloudy/mazth/"
 keywords = [ "matrix", "mazth" ]
 license = "BSD-2-Clause"
-documentation = "https://docs.rs/zpatial/0.1.0/mazth/"
+documentation = "https://docs.rs/mazth/0.1.2/mazth/"
 readme = "README.md"
 
 [dependencies]
