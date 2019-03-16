@@ -4,6 +4,8 @@ use i_comparable::IComparableError;
 use mat::Mat3x1;
 use intersect_gjk;
 use sphere::Sphere;
+use point::Point3;
+use rbox::RecBox;
 
 #[test]
 fn test_intersect_gjk_shape_support() {
@@ -61,7 +63,14 @@ fn test_intersect_gjk_query_intersect_positive() {
         let b = Sphere::init( &[ 0f64, 5f64, 0f64 ], 5f64 );
         let ret = intersect_gjk::query_intersect( &a, &b );
         assert!( ret.expect("gjk return unexpected") );
-    }   
+    }
+    //todo
+    // {
+    //     let a = Point3::init( &[ -9.9, 9.9, 9.9 ] );
+    //     let b = RecBox::init( &[ 0.,0.,0. ], 10. );
+    //     let ret = intersect_gjk::query_intersect( &a, &b );
+    //     assert!( ret.expect("gjk return unexpected") );
+    // }   
 }
 
 #[test]

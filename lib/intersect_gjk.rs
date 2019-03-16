@@ -65,12 +65,11 @@ fn contains_minkowski_origin( simplex : & mut Vec< Mat3x1< f64 > >, support: & m
 }
 
 pub fn query_intersect( a: &IShape, b: &IShape ) -> Option< bool > {
-    match a.get_type() {
-        ShapeType::SPHERE => {},
-        _ => { panic!("unsupported shape type"); },
-    }
-    match b.get_type() {
-        ShapeType::SPHERE => {},
+    match ( a.get_type(), b.get_type() ) {
+        (ShapeType::SPHERE,ShapeType::SPHERE) => {},
+        //todo
+        // (ShapeType::POINT,ShapeType::BOX) => {},
+        // (ShapeType::BOX,ShapeType::POINT) => {},
         _ => { panic!("unsupported shape type"); },
     }
     //set initial minkowski vertex from an arbitrary support vector

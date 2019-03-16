@@ -11,9 +11,9 @@ pub enum ShapeType {
     PLANE,
     TRIG,
     BOX,
+    //todo
     FRUSTUM,
-    //custom shapes
-    COMPLEX,
+    COMPLEX, //custom shapes
 }
 
 pub trait IShape : IVicinity< f64 > {

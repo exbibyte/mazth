@@ -61,12 +61,16 @@ impl IShape for Point3 {
                     //see plane for plane point intersection
                     other.get_intersect( self )
                 },
+                ShapeType::BOX => {
+                    //see recbox for box point intersection
+                    other.get_intersect( self )
+                },
                 _ => { unimplemented!(); },
             }
         }
     }
     fn get_support( & self, _v: & Mat3x1< f64 > ) -> Option< Mat3x1< f64 > > {
-        None
+        Some( self._ori )
     }
 }
 
