@@ -120,6 +120,36 @@ impl IShape for TriPrism {
                         ( false, None )
                     }
                 },
+                ShapeType::LINE => {
+                    
+                    let other_shape_data = other.get_shape_data();
+                    let a = Mat3x1 { _val: [ other_shape_data[0], other_shape_data[1], other_shape_data[2] ] };
+                    let b = Mat3x1 { _val: [ other_shape_data[3], other_shape_data[4], other_shape_data[5] ] };
+
+                    //test point aginst 5 half spaces from facets of the tri_prism to determine if point is inside the tri_prism
+
+                    let n = self._normal_height;
+                    
+                    let tests = vec![ ( self._tri_base[0], n.scale(-1.).unwrap() ),
+                                      ( self._tri_base2[0], n ),
+                                      ( self._tri_base[0], self._tri_base[1].minus(&self._tri_base[0]).unwrap().cross( &n ).unwrap() ),
+                                      ( self._tri_base[1], self._tri_base[2].minus(&self._tri_base[1]).unwrap().cross( &n ).unwrap() ),
+                                      ( self._tri_base[2], self._tri_base[0].minus(&self._tri_base[2]).unwrap().cross( &n ).unwrap() ) ];
+
+                    let is_a_inside = tests.iter()
+                        .all(|(vert,normal)| !(a.minus(vert).unwrap().dot(normal).unwrap() > 0.) );
+
+                    let is_b_inside = tests.iter()
+                        .all(|(vert,normal)| !(b.minus(vert).unwrap().dot(normal).unwrap() > 0.) );
+
+                    if is_a_inside {
+                        ( true, Some( a ) )
+                    } else if is_b_inside {
+                        ( true, Some( b ) )
+                    } else {
+                        ( false, None )
+                    }
+                },
                 _ => { unimplemented!(); },
             }
         }

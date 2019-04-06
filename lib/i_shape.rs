@@ -13,6 +13,7 @@ pub enum ShapeType {
     BOX,
     RECT,
     TRI_PRISM, //5 facets, 2 triangles, 3 rectangles
+    LINE,
     //todo
     FRUSTUM,
     COMPLEX, //custom shapes

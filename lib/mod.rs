@@ -18,6 +18,7 @@ pub mod sphere;
 pub mod plane;
 pub mod rbox;
 pub mod triprism;
+pub mod line;
 
 pub mod intersect_gjk;
 
