@@ -1,12 +1,12 @@
 [package]
 name = "mazth"
-version = "0.4.1"
+version = "0.4.2"
 authors = ["Yuan Liu <yuan6liu@gmail.com>"]
 description = "Matrix utilities."
 repository = "https://github.com/clearlycloudy/mazth/"
 keywords = [ "matrix", "mazth", "quaternion", "slerp", "sclerp" ]
 license = "BSD-2-Clause"
-documentation = "https://docs.rs/mazth/0.4.1/mazth/"
+documentation = "https://docs.rs/mazth/0.4.2/mazth/"
 readme = "README.md"
 
 [dependencies]
