@@ -7,7 +7,7 @@ use i_vicinity::IVicinity;
 use mat::Mat3x1;
 use bound::AxisAlignedBBox;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct TriPrism {
     
     ///base
