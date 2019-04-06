@@ -65,6 +65,10 @@ impl IShape for Point3 {
                     //see recbox for box point intersection
                     other.get_intersect( self )
                 },
+                ShapeType::TRI_PRISM => {
+                    //see recbox for box point intersection
+                    other.get_intersect( self )
+                },
                 _ => { unimplemented!(); },
             }
         }

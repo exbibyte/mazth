@@ -69,6 +69,13 @@ impl AxisAlignedBBox {
                     _bound_upper: [ vals[0] + vals[3], vals[1] + vals[3], vals[2] + vals[3] ],
                 }
             },
+            ShapeType::RECT => {
+                assert!( vals.len() == 6 );
+                AxisAlignedBBox {
+                    _bound_lower: [ vals[0], vals[1], vals[2] ],
+                    _bound_upper: [ vals[3], vals[4], vals[5] ],
+                }
+            },            
             ShapeType::FRUSTUM => {
                 unimplemented!();
             },
