@@ -7,6 +7,9 @@ use i_vicinity::IVicinity;
 use mat::Mat3x1;
 use bound::AxisAlignedBBox;
 
+use ray::Ray3;
+use plane::Plane;
+
 #[derive(Debug, Clone, Default)]
 pub struct TriPrism {
     
@@ -126,29 +129,75 @@ impl IShape for TriPrism {
                     let a = Mat3x1 { _val: [ other_shape_data[0], other_shape_data[1], other_shape_data[2] ] };
                     let b = Mat3x1 { _val: [ other_shape_data[3], other_shape_data[4], other_shape_data[5] ] };
 
-                    //test point aginst 5 half spaces from facets of the tri_prism to determine if point is inside the tri_prism
+                    //test points aginst 5 half spaces from facets of the tri_prism to determine if point is inside the tri_prism
 
                     let n = self._normal_height;
                     
                     let tests = vec![ ( self._tri_base[0], n.scale(-1.).unwrap() ),
-                                      ( self._tri_base2[0], n ),
-                                      ( self._tri_base[0], self._tri_base[1].minus(&self._tri_base[0]).unwrap().cross( &n ).unwrap() ),
-                                      ( self._tri_base[1], self._tri_base[2].minus(&self._tri_base[1]).unwrap().cross( &n ).unwrap() ),
-                                      ( self._tri_base[2], self._tri_base[0].minus(&self._tri_base[2]).unwrap().cross( &n ).unwrap() ) ];
+                                        ( self._tri_base2[0], n ),
+                                        ( self._tri_base[0], self._tri_base[1].minus(&self._tri_base[0]).unwrap().cross( &n ).unwrap() ),
+                                        ( self._tri_base[1], self._tri_base[2].minus(&self._tri_base[1]).unwrap().cross( &n ).unwrap() ),
+                                        ( self._tri_base[2], self._tri_base[0].minus(&self._tri_base[2]).unwrap().cross( &n ).unwrap() ) ];
 
-                    let is_a_inside = tests.iter()
-                        .all(|(vert,normal)| !(a.minus(vert).unwrap().dot(normal).unwrap() > 0.) );
 
-                    let is_b_inside = tests.iter()
-                        .all(|(vert,normal)| !(b.minus(vert).unwrap().dot(normal).unwrap() > 0.) );
+                    
+                    let a_is_inside = tests.iter().all(|(vert,normal)| !(a.minus(vert).unwrap().dot(normal).unwrap() > 0.) );
+                    let b_is_inside = tests.iter().all(|(vert,normal)| !(b.minus(vert).unwrap().dot(normal).unwrap() > 0.) );
 
-                    if is_a_inside {
-                        ( true, Some( a ) )
-                    } else if is_b_inside {
-                        ( true, Some( b ) )
+                    if a_is_inside {
+                        return ( true, Some( a ) )
+                    } else if b_is_inside {
+                        return ( true, Some( b ) )
+                    }
+
+                    //continue test using ray plane intersection
+                    
+                    let v = b.minus(&a).unwrap();
+                    let mag = v.magnitude().unwrap();
+
+                    let r = Ray3::init( &[ a[0], a[1], a[2] ], &[ v[0], v[1], v[2] ] );
+                    
+                    let n1 = self._normal_height;
+                    let n0 = n1.scale(-1.).unwrap();
+                    let n2 = self._tri_base[1].minus(&self._tri_base[0]).unwrap().cross( &n1 ).unwrap();
+                    let n3 = self._tri_base[2].minus(&self._tri_base[1]).unwrap().cross( &n1 ).unwrap();
+                    let n4 = self._tri_base[0].minus(&self._tri_base[2]).unwrap().cross( &n1 ).unwrap();
+                    
+                    let facets = vec![
+                        Plane::init( &[ self._tri_base[0][0] as f64, self._tri_base[0][1] as f64, self._tri_base[0][2] as f64 ],    &[ n0[0] as f64, n0[1] as f64, n0[2] as f64 ] ),
+                        Plane::init( &[ self._tri_base2[0][0] as f64, self._tri_base2[0][1] as f64, self._tri_base2[0][2] as f64 ], &[ n1[0] as f64, n1[1] as f64, n1[2] as f64 ] ),
+                        Plane::init( &[ self._tri_base[0][0] as f64, self._tri_base[0][1] as f64, self._tri_base[0][2] as f64 ],    &[ n2[0] as f64, n2[1] as f64, n2[2] as f64 ] ),
+                        Plane::init( &[ self._tri_base[1][0] as f64, self._tri_base[1][1] as f64, self._tri_base[1][2] as f64 ],    &[ n3[0] as f64, n3[1] as f64, n3[2] as f64 ] ),
+                        Plane::init( &[ self._tri_base[2][0] as f64, self._tri_base[2][1] as f64, self._tri_base[2][2] as f64 ],    &[ n4[0] as f64, n4[1] as f64, n4[2] as f64 ] ),
+                    ];
+
+                    let mut intersect_point = None;
+                    let mut is_inside = false;
+                    for i in facets.iter(){
+                        let res = r.get_intersect( i );
+                        if res.0 {
+                            let collide_point = res.1.unwrap();
+                            let mag2 = collide_point.minus(&a).unwrap().magnitude().unwrap();
+
+                            //one more check necesary for the candidate collision point
+                            let is_point_inside = tests.iter().all(|(vert,normal)| !(collide_point.minus(vert).unwrap().dot(normal).unwrap() > 0.) );
+                            
+                            if !is_point_inside || mag2 > mag {
+                                continue;
+                            } else {
+                                is_inside = true;
+                                intersect_point = res.1;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if is_inside {
+                        ( true, intersect_point )
                     } else {
                         ( false, None )
                     }
+                    
                 },
                 _ => { unimplemented!(); },
             }

@@ -18,4 +18,5 @@ pub mod test_intersect_point_point;
 pub mod test_intersect_box_point;
 pub mod test_intersect_gjk;
 pub mod test_intersect_triprism_point;
+pub mod test_intersect_triprism_line;
 
