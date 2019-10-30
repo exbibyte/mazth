@@ -87,7 +87,7 @@ impl AxisAlignedBBox {
         let dy = ( Axis::Y, self._bound_upper[1] - self._bound_lower[1] );
         let dz = ( Axis::Z, self._bound_upper[2] - self._bound_lower[2] );
         let longest = [ dx, dy, dz ]
-            .into_iter()
+            .iter()
             .cloned()
             .max_by( |x, y|
                       if x.1 < y.1 {
