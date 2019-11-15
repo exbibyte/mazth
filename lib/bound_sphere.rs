@@ -4,35 +4,34 @@ use i_bound::BoundType;
 use i_bound::IBound;
 use i_shape::ShapeType;
 
-#[derive(Debug)]
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct BoundSphere {
     //todo
 }
 
 impl BoundSphere {
-    pub fn init( _shape_type: ShapeType, _vals: &[f64] ) -> BoundSphere {
+    pub fn init(_shape_type: ShapeType, _vals: &[f64]) -> BoundSphere {
         BoundSphere {}
     }
 }
 
 impl IBound for BoundSphere {
-    fn get_type( & self ) -> BoundType {
+    fn get_type(&self) -> BoundType {
         BoundType::Sphere
     }
-    fn intersect( & self, _other: & IBound ) -> bool {
+    fn intersect(&self, _other: &dyn IBound) -> bool {
         unimplemented!();
     }
-    fn get_shortest_separation( & self, _other: & IBound ) -> f64 {
+    fn get_shortest_separation(&self, _other: &dyn IBound) -> f64 {
         unimplemented!();
     }
-    fn get_bound_data( &self ) -> [f64;32] {
+    fn get_bound_data(&self) -> [f64; 32] {
         unimplemented!();
     }
-    fn get_union( & mut self, _bounds: &[ &IBound ] ) {
+    fn get_union(&mut self, _bounds: &[&dyn IBound]) {
         unimplemented!();
     }
-    fn get_centroid( & self ) -> [ f64; 3 ] {
+    fn get_centroid(&self) -> [f64; 3] {
         unimplemented!();
     }
 }
