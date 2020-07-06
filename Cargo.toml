@@ -1,6 +1,6 @@
 [package]
 name = "mazth"
-version = "0.6.0"
+version = "1.0.0"
 authors = ["Yuan Liu <yuan6liu@gmail.com>"]
 description = "Matrix utilities."
 repository = "https://github.com/clearlycloudy/mazth/"
@@ -10,8 +10,9 @@ documentation = "https://docs.rs/mazth/0.6.0/mazth/"
 readme = "README.md"
 
 [dependencies]
-# num = "0.1.41"
-ndarray = "0.12.1"
+ndarray = "0.13.0"
+ndarray-rand = "0.11.0"
+approx = "0.3.2"
 
 [lib]
 name = "mazth"

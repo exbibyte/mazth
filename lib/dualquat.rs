@@ -9,25 +9,20 @@ use std::ops::Mul;
 
 use quat::Quat;
 
-#[derive(Debug, Copy, Clone)]
-pub struct DualQuat<T> {
-    pub _rot: Quat<T>,
-    pub _tra: Quat<T>,
-}
+#[derive(Debug, Clone)]
+pub struct DualQuat(Quat, Quat);
 
-macro_rules! define_dualquat {
-    ($v_type: tt) => {
-        impl DualQuat<$v_type> {
-            #[allow(dead_code)]
-            pub fn init(rotate: Quat<$v_type>, translate: Quat<$v_type>) -> DualQuat<$v_type> {
-                DualQuat {
-                    _rot: rotate,
-                    _tra: translate,
-                }
-            }
-        }
-    };
+impl DualQuat {
+    #[allow(dead_code)]
+    pub fn new(rotate: Quat, translate: Quat) -> DualQuat {
+        DualQuat(rotate, translate)
+    }
+    #[allow(dead_code)]
+    pub fn rot(&self) -> &Quat {
+        &self.0
+    }
+    #[allow(dead_code)]
+    pub fn tra(&self) -> &Quat {
+        &self.1
+    }
 }
-
-define_dualquat!(f32);
-define_dualquat!(f64);
