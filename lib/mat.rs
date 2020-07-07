@@ -2,9 +2,9 @@
 // extern crate ndarray_rand;
 // extern crate approx;
 
-use ndarray::prelude::*;
+pub use ndarray::prelude::*;
 pub use ndarray::{Array, Ix3};
-use ndarray::{aview0, aview1, arr2, Axis};
+pub use ndarray::{aview0, aview1, arr2, Axis};
     
 use ndarray_rand::RandomExt;
 use ndarray_rand::rand_distr::Uniform;
