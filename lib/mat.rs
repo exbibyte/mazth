@@ -1,9 +1,9 @@
-extern crate ndarray;
-extern crate ndarray_rand;
-extern crate approx;
+// extern crate ndarray;
+// extern crate ndarray_rand;
+// extern crate approx;
 
 use ndarray::prelude::*;
-use ndarray::{Array, Ix3};
+pub use ndarray::{Array, Ix3};
 use ndarray::{aview0, aview1, arr2, Axis};
     
 use ndarray_rand::RandomExt;
