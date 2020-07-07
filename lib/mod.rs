@@ -1,11 +1,11 @@
 #[macro_use]
-extern crate ndarray;
+pub extern crate ndarray;
 
 #[macro_use]
-extern crate ndarray_rand;
+pub extern crate ndarray_rand;
 
 #[macro_use]
-extern crate approx;
+pub extern crate approx;
 
 // pub mod i_bound;
 // pub mod i_comparable;
