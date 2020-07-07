@@ -22,7 +22,7 @@ pub type Matrix1D= Array::<f64, Ix1>;
 pub type Matrix= Array::<f64, Ix2>;
 pub type MatrixView<'a> = ArrayView::<'a, f64, Ix2>;
 
-pub const eps: f64 = 1e15;
+pub const eps: f64 = 1e-15;
 
 pub fn cross_vec(a: & MatrixView, b: & MatrixView ) -> Matrix {
     assert!(a.shape().len()==2);
