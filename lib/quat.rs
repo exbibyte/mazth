@@ -20,35 +20,35 @@ use crate::mat::*;
 #[derive(Debug, Clone)]
 pub struct Quat {
     ///data: [x,y,z,w]
-    m: Matrix,
+    m: Matrix1D,
 }
 
 impl Default for Quat {
     fn default() -> Quat {
         Quat {
-            m: array![[0., 0., 0., 1.]],
+            m: array![0., 0., 0., 1.],
         }
     }
 }
 
 impl Quat {
     pub fn x(&self) -> f64 {
-        self.m[[0, 0]]
+        self.m[[0]]
     }
     pub fn y(&self) -> f64 {
-        self.m[[1, 0]]
+        self.m[[1]]
     }
     pub fn z(&self) -> f64 {
-        self.m[[2, 0]]
+        self.m[[2]]
     }
     pub fn w(&self) -> f64 {
-        self.m[[3, 0]]
+        self.m[[3]]
     }
 
     #[allow(dead_code)]
     pub fn init_from_vals(x: f64, y: f64, z: f64, w: f64) -> Quat {
         Quat {
-            m: array![[x, y, z, w]],
+            m: array![x, y, z, w],
         }
     }
 
@@ -57,11 +57,11 @@ impl Quat {
         let w = 1. - x * x - y * y - z * z;
         if w < 0. {
             Quat {
-                m: array![[x, y, z, w]],
+                m: array![x, y, z, w],
             }
         } else {
             Quat {
-                m: array![[x, y, z, -1. * w.sqrt()]],
+                m: array![x, y, z, -1. * w.sqrt()],
             }
         }
     }
@@ -71,12 +71,12 @@ impl Quat {
         assert!(trans.shape()[0] == 3);
         assert!(trans.shape()[1] == 1);
         Quat {
-            m: array![[
+            m: array![
                 trans[[0, 0]] / 2.,
                 trans[[1, 0]] / 2.,
                 trans[[2, 0]] / 2.,
                 0.
-            ]],
+            ],
         }
     }
 
@@ -120,14 +120,14 @@ impl Quat {
         ///returns [x,y,z,angle]
         let k = (1. - self.w() * self.w()).sqrt();
         if k < eps {
-            array![[1., 0., 0., 0.]]
+            array![[1.], [0.], [0.], [0.]]
         } else {
             let vec_x = self.x() / k;
             let vec_y = self.y() / k;
             let vec_z = self.z() / k;
             let l = (vec_x * vec_x + vec_y * vec_y + vec_z * vec_z).sqrt();
             // assert!(l.abs()>eps);
-            array![[vec_x / l, vec_y / l, vec_z / l, 2. * self.w().acos()]]
+            array![[vec_x / l], [vec_y / l], [vec_z / l], [2. * self.w().acos()]]
         }
     }
     #[allow(dead_code)]
@@ -135,7 +135,7 @@ impl Quat {
         let angle = axis_angle[[3, 0]];
         let axis = axis_angle.slice(s![0..3, ..]);
         let radian = angle / 180. * PI;
-        let s = array![[axis[[0, 0]], axis[[1, 0]], axis[[2, 0]], radian]];
+        let s = array![[axis[[0, 0]]], [axis[[1, 0]]], [axis[[2, 0]]], [radian]];
         Self::init_from_axis_angle_radian(s.t())
     }
     #[allow(dead_code)]
@@ -144,14 +144,10 @@ impl Quat {
         let axis = axis_angle.slice(s![0..3, ..]);
         let axis_adjust = normalize_vec_l2(&axis);
         let sine_half = (radian / 2.).sin();
-        Quat {
-            m: array![[
-                axis_adjust[[0, 0]] * sine_half,
-                axis_adjust[[1, 0]] * sine_half,
-                axis_adjust[[2, 0]] * sine_half,
-                (radian / 2.).cos()
-            ]],
-        }
+        Quat::init_from_vals(axis_adjust[[0, 0]] * sine_half,
+                             axis_adjust[[1, 0]] * sine_half,
+                             axis_adjust[[2, 0]] * sine_half,
+                             (radian / 2.).cos())
     }
     #[allow(dead_code)]
     pub fn rotate_vector(&self, p: MatrixView) -> Matrix {

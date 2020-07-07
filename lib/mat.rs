@@ -1,10 +1,6 @@
-// extern crate ndarray;
-// extern crate ndarray_rand;
-// extern crate approx;
-
-pub use ndarray::prelude::*;
-pub use ndarray::{Array, Ix3};
-pub use ndarray::{aview0, aview1, arr2, Axis};
+use ndarray::prelude::*;
+use ndarray::{Array, Ix3};
+use ndarray::{aview0, aview1, arr2, Axis};
     
 use ndarray_rand::RandomExt;
 use ndarray_rand::rand_distr::Uniform;
@@ -22,6 +18,7 @@ use std::ops::IndexMut;
 #[allow(unused_imports)]
 use std::ops::Mul;
 
+pub type Matrix1D= Array::<f64, Ix1>;
 pub type Matrix= Array::<f64, Ix2>;
 pub type MatrixView<'a> = ArrayView::<'a, f64, Ix2>;
 
