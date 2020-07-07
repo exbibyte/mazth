@@ -33,16 +33,16 @@ impl Default for Quat {
 
 impl Quat {
     pub fn x(&self) -> f64 {
-        self.m[[0]]
+        self.m[0]
     }
     pub fn y(&self) -> f64 {
-        self.m[[1]]
+        self.m[1]
     }
     pub fn z(&self) -> f64 {
-        self.m[[2]]
+        self.m[2]
     }
     pub fn w(&self) -> f64 {
-        self.m[[3]]
+        self.m[3]
     }
 
     #[allow(dead_code)]
