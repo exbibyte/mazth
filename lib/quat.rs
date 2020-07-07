@@ -1,7 +1,7 @@
 extern crate ndarray;
 
 use ndarray::prelude::*;
-use ndarray::{arr2, aview0, aview1, Axis};
+use ndarray::{arr1, arr2, aview0, aview1, Axis};
 use ndarray::{Array, Ix3};
 
 #[allow(unused_imports)]
@@ -26,29 +26,33 @@ pub struct Quat {
 impl Default for Quat {
     fn default() -> Quat {
         Quat {
-            m: array![0., 0., 0., 1.],
+            m: arr1(&[0., 0., 0., 1.]),
         }
     }
 }
 
 impl Quat {
     pub fn x(&self) -> f64 {
-        self.m[0]
+        assert_eq!( self.m.shape(), &[4]);
+        self.m[[0]]
     }
     pub fn y(&self) -> f64 {
-        self.m[1]
+        assert_eq!( self.m.shape(), &[4]);
+        self.m[[1]]
     }
     pub fn z(&self) -> f64 {
-        self.m[2]
+        assert_eq!( self.m.shape(), &[4]);
+        self.m[[2]]
     }
     pub fn w(&self) -> f64 {
-        self.m[3]
+        assert_eq!( self.m.shape(), &[4]);
+        self.m[[3]]
     }
 
     #[allow(dead_code)]
     pub fn init_from_vals(x: f64, y: f64, z: f64, w: f64) -> Quat {
         Quat {
-            m: array![x, y, z, w],
+            m: arr1(&[x, y, z, w]),
         }
     }
 
@@ -57,11 +61,11 @@ impl Quat {
         let w = 1. - x * x - y * y - z * z;
         if w < 0. {
             Quat {
-                m: array![x, y, z, w],
+                m: arr1(&[x, y, z, w]),
             }
         } else {
             Quat {
-                m: array![x, y, z, -1. * w.sqrt()],
+                m: arr1(&[x, y, z, -1. * w.sqrt()]),
             }
         }
     }
@@ -70,14 +74,10 @@ impl Quat {
         assert!(trans.shape().len() == 2);
         assert!(trans.shape()[0] == 3);
         assert!(trans.shape()[1] == 1);
-        Quat {
-            m: array![
-                trans[[0, 0]] / 2.,
-                trans[[1, 0]] / 2.,
-                trans[[2, 0]] / 2.,
-                0.
-            ],
-        }
+        Quat::init_from_vals(trans[[0, 0]] / 2.,
+                             trans[[1, 0]] / 2.,
+                             trans[[2, 0]] / 2.,
+                             0.)
     }
 
     #[allow(dead_code)]
