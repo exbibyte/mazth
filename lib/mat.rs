@@ -24,6 +24,62 @@ pub type MatrixView<'a> = ArrayView::<'a, f64, Ix2>;
 
 pub const eps: f64 = 1e-15;
 
+#[derive(Default)]
+pub struct Arrayf32_16 (pub [f32; 16]);
+
+#[derive(Default)]
+pub struct Arrayf32_9 (pub [f32; 9]);
+
+#[derive(Default)]
+pub struct Arrayf32_4 (pub [f32; 4]);
+
+#[derive(Default)]
+pub struct Arrayf32_3 (pub [f32; 3]);
+
+impl From< &Matrix> for Arrayf32_16 {
+    ///convert to column major ordering flattened array
+    fn from(m: &Matrix) -> Self {
+        let mut arr = [0f32; 16];
+        for (idx,i) in m.t().iter().take(16).enumerate() {
+            arr[idx] = *i as _;
+        }
+        Self(arr)
+    }
+}
+
+impl From< &Matrix> for Arrayf32_9 {
+    ///convert to column major ordering flattened array
+    fn from(m: &Matrix) -> Self {
+        let mut arr = [0f32; 9];
+        for (idx,i) in m.t().iter().take(9).enumerate() {
+            arr[idx] = *i as _;
+        }
+        Self(arr)
+    }
+}
+
+impl From< &Matrix> for Arrayf32_4 {
+    ///convert to column major ordering flattened array
+    fn from(m: &Matrix) -> Self {
+        let mut arr = [0f32; 4];
+        for (idx,i) in m.t().iter().take(4).enumerate() {
+            arr[idx] = *i as _;
+        }
+        Self(arr)
+    }
+}
+
+impl From< &Matrix> for Arrayf32_3 {
+    ///convert to column major ordering flattened array
+    fn from(m: &Matrix) -> Self {
+        let mut arr = [0f32; 3];
+        for (idx,i) in m.t().iter().take(3).enumerate() {
+            arr[idx] = *i as _;
+        }
+        Self(arr)
+    }
+}
+
 pub fn cross_vec(a: & MatrixView, b: & MatrixView ) -> Matrix {
     assert!(a.shape().len()==2);
     assert!(b.shape().len()==2);
