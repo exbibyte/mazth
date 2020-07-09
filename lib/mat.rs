@@ -36,9 +36,9 @@ pub struct Arrayf32_4 (pub [f32; 4]);
 #[derive(Default)]
 pub struct Arrayf32_3 (pub [f32; 3]);
 
-impl From< &Matrix> for Arrayf32_16 {
+impl From< Matrix> for Arrayf32_16 {
     ///convert to column major ordering flattened array
-    fn from(m: &Matrix) -> Self {
+    fn from(m: Matrix) -> Self {
         let mut arr = [0f32; 16];
         for (idx,i) in m.t().iter().take(16).enumerate() {
             arr[idx] = *i as _;
@@ -47,9 +47,9 @@ impl From< &Matrix> for Arrayf32_16 {
     }
 }
 
-impl From< &Matrix> for Arrayf32_9 {
+impl From< Matrix> for Arrayf32_9 {
     ///convert to column major ordering flattened array
-    fn from(m: &Matrix) -> Self {
+    fn from(m: Matrix) -> Self {
         let mut arr = [0f32; 9];
         for (idx,i) in m.t().iter().take(9).enumerate() {
             arr[idx] = *i as _;
@@ -58,9 +58,9 @@ impl From< &Matrix> for Arrayf32_9 {
     }
 }
 
-impl From< &Matrix> for Arrayf32_4 {
+impl From< Matrix> for Arrayf32_4 {
     ///convert to column major ordering flattened array
-    fn from(m: &Matrix) -> Self {
+    fn from(m: Matrix) -> Self {
         let mut arr = [0f32; 4];
         for (idx,i) in m.t().iter().take(4).enumerate() {
             arr[idx] = *i as _;
@@ -69,9 +69,9 @@ impl From< &Matrix> for Arrayf32_4 {
     }
 }
 
-impl From< &Matrix> for Arrayf32_3 {
+impl From< Matrix> for Arrayf32_3 {
     ///convert to column major ordering flattened array
-    fn from(m: &Matrix) -> Self {
+    fn from(m: Matrix) -> Self {
         let mut arr = [0f32; 3];
         for (idx,i) in m.t().iter().take(3).enumerate() {
             arr[idx] = *i as _;
@@ -114,6 +114,11 @@ pub fn normalize_vec_l2(a: & MatrixView) -> Matrix {
 
 #[test]
 fn test(){
+    {
+        let a : Matrix1D = arr1(&[1.,2.,3.]);
+        let b : Matrix = arr2(&[[4.,5.,6.],[7.,8.,9.],[10.,11.,12.]]);
+        let c = b.dot(&a);
+    }
     {
         let a = Array::random((4, 1), Uniform::new(0., 10.));
         let b = Array::random((4, 1), Uniform::new(0., 10.));

@@ -16,6 +16,7 @@ pub extern crate approx;
 pub mod mat;
 pub mod quat;
 pub mod dualquat;
+pub mod dualscalar;
 
 // pub mod bound;
 // pub mod bound_sphere;

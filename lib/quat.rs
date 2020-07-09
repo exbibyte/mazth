@@ -10,12 +10,12 @@ use std::ops::Div;
 use std::ops::Index;
 #[allow(unused_imports)]
 use std::ops::IndexMut;
-#[allow(unused_imports)]
-use std::ops::Mul;
 
 use std::f64::consts::PI;
 
 use crate::mat::*;
+
+use std::ops::{Add, Mul, Sub};
 
 #[derive(Debug, Clone)]
 pub struct Quat {
@@ -33,22 +33,37 @@ impl Default for Quat {
 
 impl Quat {
     pub fn x(&self) -> f64 {
-        assert_eq!( self.m.shape(), &[4]);
+        assert_eq!(self.m.shape(), &[4]);
         self.m[[0]]
     }
     pub fn y(&self) -> f64 {
-        assert_eq!( self.m.shape(), &[4]);
+        assert_eq!(self.m.shape(), &[4]);
         self.m[[1]]
     }
     pub fn z(&self) -> f64 {
-        assert_eq!( self.m.shape(), &[4]);
+        assert_eq!(self.m.shape(), &[4]);
         self.m[[2]]
     }
     pub fn w(&self) -> f64 {
-        assert_eq!( self.m.shape(), &[4]);
+        assert_eq!(self.m.shape(), &[4]);
         self.m[[3]]
     }
-
+    pub fn x_mut(&mut self) -> &mut f64 {
+        assert_eq!(self.m.shape(), &[4]);
+        &mut self.m[[0]]
+    }
+    pub fn y_mut(&mut self) -> &mut f64 {
+        assert_eq!(self.m.shape(), &[4]);
+        &mut self.m[[1]]
+    }
+    pub fn z_mut(&mut self) -> &mut f64 {
+        assert_eq!(self.m.shape(), &[4]);
+        &mut self.m[[2]]
+    }
+    pub fn w_mut(&mut self) -> &mut f64 {
+        assert_eq!(self.m.shape(), &[4]);
+        &mut self.m[[3]]
+    }
     #[allow(dead_code)]
     pub fn init_from_vals(x: f64, y: f64, z: f64, w: f64) -> Quat {
         Quat {
@@ -74,24 +89,27 @@ impl Quat {
         assert!(trans.shape().len() == 2);
         assert!(trans.shape()[0] == 3);
         assert!(trans.shape()[1] == 1);
-        Quat::init_from_vals(trans[[0, 0]] / 2.,
-                             trans[[1, 0]] / 2.,
-                             trans[[2, 0]] / 2.,
-                             0.)
+        Quat::init_from_vals(
+            trans[[0, 0]] / 2.,
+            trans[[1, 0]] / 2.,
+            trans[[2, 0]] / 2.,
+            0.,
+        )
     }
 
     #[allow(dead_code)]
-    pub fn to_translation_matrix(&self, row_major: bool) -> Matrix {
+    pub fn to_translation_matrix(&self) -> Matrix {
+        //assume current quaternion corresponds to translation
         array![
-            [0., 0., 0., self.x()],
-            [0., 0., 0., self.y()],
-            [0., 0., 0., self.z()],
+            [0., 0., 0., 2. * self.x()],
+            [0., 0., 0., 2. * self.y()],
+            [0., 0., 0., 2. * self.z()],
             [0., 0., 0., 1.]
         ]
     }
 
     #[allow(dead_code)]
-    pub fn to_rotation_matrix(&self, row_major: bool) -> Matrix {
+    pub fn to_rotation_matrix(&self) -> Matrix {
         //assumes unit quaternion
         array![
             [
@@ -127,7 +145,12 @@ impl Quat {
             let vec_z = self.z() / k;
             let l = (vec_x * vec_x + vec_y * vec_y + vec_z * vec_z).sqrt();
             // assert!(l.abs()>eps);
-            array![[vec_x / l], [vec_y / l], [vec_z / l], [2. * self.w().acos()]]
+            array![
+                [vec_x / l],
+                [vec_y / l],
+                [vec_z / l],
+                [2. * self.w().acos()]
+            ]
         }
     }
     #[allow(dead_code)]
@@ -144,17 +167,17 @@ impl Quat {
         let axis = axis_angle.slice(s![0..3, ..]);
         let axis_adjust = normalize_vec_l2(&axis);
         let sine_half = (radian / 2.).sin();
-        Quat::init_from_vals(axis_adjust[[0, 0]] * sine_half,
-                             axis_adjust[[1, 0]] * sine_half,
-                             axis_adjust[[2, 0]] * sine_half,
-                             (radian / 2.).cos())
+        Quat::init_from_vals(
+            axis_adjust[[0, 0]] * sine_half,
+            axis_adjust[[1, 0]] * sine_half,
+            axis_adjust[[2, 0]] * sine_half,
+            (radian / 2.).cos(),
+        )
     }
     #[allow(dead_code)]
     pub fn rotate_vector(&self, p: MatrixView) -> Matrix {
-        let conj = self.conjugate();
         let quat_p = Quat::init_from_vals(p[[0, 0]], p[[1, 0]], p[[2, 0]], 0.);
-        let temp = self.mul(&quat_p);
-        let temp2 = temp.mul(&conj);
+        let temp2 = self.mul(&quat_p).mul(&self.conjugate());
         array![[temp2.x()], [temp2.y()], [temp2.z()]]
     }
     #[allow(dead_code)]
@@ -234,6 +257,18 @@ impl Quat {
         }
     }
     #[allow(dead_code)]
+    pub fn normalized(&mut self) {
+        let l = self.length();
+        if l > 0. || l < 0. {
+            *self.x_mut() = self.x() / l;
+            *self.y_mut() = self.y() / l;
+            *self.z_mut() = self.z() / l;
+            *self.w_mut() = self.w() / l;
+        } else {
+            panic!("quat normalization unsuccessful.");
+        }
+    }
+    #[allow(dead_code)]
     pub fn ln(&self) -> Quat {
         let l = self.length();
         let w_ln = self.w().ln();
@@ -278,6 +313,13 @@ impl Quat {
     #[allow(dead_code)]
     pub fn scale(&self, s: f64) -> Quat {
         Quat::init_from_vals(self.x() * s, self.y() * s, self.z() * s, self.w() * s)
+    }
+    #[allow(dead_code)]
+    pub fn scaled(&mut self, s: f64) {
+        *self.x_mut() = self.x() * s;
+        *self.y_mut() = self.y() * s;
+        *self.z_mut() = self.z() * s;
+        *self.w_mut() = self.w() * s;
     }
     #[allow(dead_code)]
     pub fn inverse(&self) -> Quat {
@@ -338,5 +380,26 @@ impl Quat {
             start.z() * k0 + end_adjust.z() * k1,
             start.w() * k0 + end_adjust.w() * k1,
         )
+    }
+}
+
+impl Add for &Quat {
+    type Output = Quat;
+    fn add(self, rhs: Self) -> Self::Output {
+        self.add(rhs)
+    }
+}
+
+impl Mul for &Quat {
+    type Output = Quat;
+    fn mul(self, rhs: Self) -> Self::Output {
+        self.mul(rhs)
+    }
+}
+
+impl Sub for &Quat {
+    type Output = Quat;
+    fn sub(self, rhs: Self) -> Self::Output {
+        self.minus(rhs)
     }
 }
