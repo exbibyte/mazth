@@ -19,6 +19,7 @@ use std::ops::IndexMut;
 use std::ops::Mul;
 
 pub type Matrix1D= Array::<f64, Ix1>;
+pub type Matrix1DView<'a> = ArrayView::<'a, f64, Ix1>;
 pub type Matrix= Array::<f64, Ix2>;
 pub type MatrixView<'a> = ArrayView::<'a, f64, Ix2>;
 
@@ -94,6 +95,10 @@ pub fn cross_vec(a: & MatrixView, b: & MatrixView ) -> Matrix {
             [ 0.] ]
 }
 
+pub fn mag_vec_l2_1d(a: & Matrix1DView) -> f64 {
+    (a*a).sum().sqrt()
+}
+
 pub fn mag_vec_l2(a: & MatrixView) -> f64 {
     (a*a).sum().sqrt()
 }
@@ -106,6 +111,13 @@ pub fn mag_vec3_l2(a: & MatrixView) -> f64 {
 
 pub fn normalize_vec_l2(a: & MatrixView) -> Matrix {
     let m = mag_vec_l2(a);
+    let factor = 1.0/(m + eps);
+    let b = a.to_owned();
+    b * factor
+}
+
+pub fn normalize_vec_l2_1d(a: & Matrix1DView) -> Matrix1D {
+    let m = mag_vec_l2_1d(a);
     let factor = 1.0/(m + eps);
     let b = a.to_owned();
     b * factor

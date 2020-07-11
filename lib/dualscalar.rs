@@ -1,5 +1,6 @@
 use std::ops::{Add, Div, Mul, Sub};
 
+///(real, img) pair
 #[derive(Debug, Clone)]
 pub struct DualScalar(f64, f64);
 
@@ -22,9 +23,9 @@ impl DualScalar {
     pub fn conjugate(&self) -> Self {
         Self::new(self.real(), -self.dual())
     }
-    pub fn inverse(&self) -> Self {
+    pub fn invert(&self) -> Self {
         let a = 1. / self.real();
-        let b = -self.dual() + a * a;
+        let b = -self.dual() * a * a;
         Self::new(a, b)
     }
     pub fn norm(&self) -> f64 {

@@ -96,7 +96,6 @@ impl Quat {
             0.,
         )
     }
-
     #[allow(dead_code)]
     pub fn to_translation_matrix(&self) -> Matrix {
         //assume current quaternion corresponds to translation
@@ -111,27 +110,65 @@ impl Quat {
     #[allow(dead_code)]
     pub fn to_rotation_matrix(&self) -> Matrix {
         //assumes unit quaternion
+        let a = self.normalize();
         array![
             [
-                1. - 2. * (self.y() * self.y() + self.z() * self.z()), //first row
-                2. * (self.x() * self.y() - self.z() * self.w()),
-                2. * (self.x() * self.z() + self.y() * self.w()),
+                1. - 2. * (a.y() * a.y() + a.z() * a.z()), //first row
+                2. * (a.x() * a.y() - a.z() * a.w()),
+                2. * (a.x() * a.z() + a.y() * a.w()),
                 0.
             ],
             [
-                2. * (self.x() * self.y() + self.z() * self.w()), //second row
-                1. - 2. * (self.x() * self.x() + self.z() * self.z()),
-                2. * (self.y() * self.z() - self.x() * self.w()),
+                2. * (a.x() * a.y() + a.z() * a.w()), //second row
+                1. - 2. * (a.x() * a.x() + a.z() * a.z()),
+                2. * (a.y() * a.z() - a.x() * a.w()),
                 0.
             ],
             [
-                2. * (self.x() * self.z() - self.y() * self.w()), //third row
-                2. * (self.z() * self.y() + self.x() * self.w()),
-                1. - 2. * (self.x() * self.x() + self.y() * self.y()),
+                2. * (a.x() * a.z() - a.y() * a.w()), //third row
+                2. * (a.z() * a.y() + a.x() * a.w()),
+                1. - 2. * (a.x() * a.x() + a.y() * a.y()),
                 0.
             ],
-            [0., 0., 0., 1.]
+            [0., 0., 0., 1.] //last row
         ]
+    }
+    #[allow(dead_code)]
+    pub fn init_from_axis_angle_degree_vec(axis_angle: MatrixView) -> Quat {
+        let angle = axis_angle[[3, 0]];
+        let axis = axis_angle.slice(s![0..3, ..]);
+        let radian = angle / 180. * PI;
+        let s = array![[axis[[0, 0]]], [axis[[1, 0]]], [axis[[2, 0]]], [radian]];
+        Self::init_from_axis_angle_radian_vec(s.t())
+    }
+    #[allow(dead_code)]
+    pub fn init_from_axis_angle_radian_vec(axis_angle: MatrixView) -> Quat {
+        let radian = axis_angle[[3, 0]];
+        let axis = axis_angle.slice(s![0..3, ..]);
+        let axis_adjust = normalize_vec_l2(&axis);
+        let sine_half = (radian / 2.).sin();
+        Quat::init_from_vals(
+            axis_adjust[[0, 0]] * sine_half,
+            axis_adjust[[1, 0]] * sine_half,
+            axis_adjust[[2, 0]] * sine_half,
+            (radian / 2.).cos(),
+        )
+    }
+    #[allow(dead_code)]
+    pub fn init_from_axis_angle_degree(axis: MatrixView, angle: f64) -> Quat {
+        Self::init_from_axis_angle_radian(axis, angle / 180. * PI)
+    }
+    #[allow(dead_code)]
+    pub fn init_from_axis_angle_radian(axis: MatrixView, angle: f64) -> Quat {
+        let radian = angle;
+        let axis_adjust = normalize_vec_l2(&axis);
+        let sine_half = (radian / 2.).sin();
+        Quat::init_from_vals(
+            axis_adjust[[0, 0]] * sine_half,
+            axis_adjust[[1, 0]] * sine_half,
+            axis_adjust[[2, 0]] * sine_half,
+            (radian / 2.).cos(),
+        )
     }
     #[allow(dead_code)]
     pub fn to_axis_angle(&self) -> Matrix {
@@ -152,27 +189,6 @@ impl Quat {
                 [2. * self.w().acos()]
             ]
         }
-    }
-    #[allow(dead_code)]
-    pub fn init_from_axis_angle_degree(axis_angle: MatrixView) -> Quat {
-        let angle = axis_angle[[3, 0]];
-        let axis = axis_angle.slice(s![0..3, ..]);
-        let radian = angle / 180. * PI;
-        let s = array![[axis[[0, 0]]], [axis[[1, 0]]], [axis[[2, 0]]], [radian]];
-        Self::init_from_axis_angle_radian(s.t())
-    }
-    #[allow(dead_code)]
-    pub fn init_from_axis_angle_radian(axis_angle: MatrixView) -> Quat {
-        let radian = axis_angle[[3, 0]];
-        let axis = axis_angle.slice(s![0..3, ..]);
-        let axis_adjust = normalize_vec_l2(&axis);
-        let sine_half = (radian / 2.).sin();
-        Quat::init_from_vals(
-            axis_adjust[[0, 0]] * sine_half,
-            axis_adjust[[1, 0]] * sine_half,
-            axis_adjust[[2, 0]] * sine_half,
-            (radian / 2.).cos(),
-        )
     }
     #[allow(dead_code)]
     pub fn rotate_vector(&self, p: MatrixView) -> Matrix {
@@ -240,16 +256,16 @@ impl Quat {
         )
     }
     #[allow(dead_code)]
-    pub fn length_squared(&self) -> f64 {
+    pub fn norm_squared(&self) -> f64 {
         self.x() * self.x() + self.y() * self.y() + self.z() * self.z() + self.w() * self.w()
     }
     #[allow(dead_code)]
-    pub fn length(&self) -> f64 {
-        self.length_squared().sqrt()
+    pub fn norm(&self) -> f64 {
+        self.norm_squared().sqrt()
     }
     #[allow(dead_code)]
     pub fn normalize(&self) -> Quat {
-        let l = self.length();
+        let l = self.norm();
         if l > 0. || l < 0. {
             Quat::init_from_vals(self.x() / l, self.y() / l, self.z() / l, self.w() / l)
         } else {
@@ -258,7 +274,7 @@ impl Quat {
     }
     #[allow(dead_code)]
     pub fn normalized(&mut self) {
-        let l = self.length();
+        let l = self.norm();
         if l > 0. || l < 0. {
             *self.x_mut() = self.x() / l;
             *self.y_mut() = self.y() / l;
@@ -270,7 +286,7 @@ impl Quat {
     }
     #[allow(dead_code)]
     pub fn ln(&self) -> Quat {
-        let l = self.length();
+        let l = self.norm();
         let w_ln = self.w().ln();
         //normalize x,y,z vector -> v/||v||
         let vec_length = (self.x() * self.x() + self.y() * self.y() + self.z() * self.z()).sqrt();
@@ -289,7 +305,7 @@ impl Quat {
         let vec_x = self.x() / vec_length;
         let vec_y = self.y() / vec_length;
         let vec_z = self.z() / vec_length;
-        let l = self.length();
+        let l = self.norm();
         //original angle
         let alpha = (self.w() / l).acos();
         //new angle
@@ -324,9 +340,16 @@ impl Quat {
     #[allow(dead_code)]
     pub fn inverse(&self) -> Quat {
         let conj = self.conjugate();
-        let norm = conj.length_squared();
+        let norm = conj.norm_squared();
         assert!(norm != 0.);
         conj.scale(1. / norm)
+    }
+    #[allow(dead_code)]
+    pub fn dot(&self, other: &Self) -> f64 {
+        self.x() * other.x() +
+            self.y() * other.y() +
+            self.z() * other.z() +
+            self.w() * other.w()
     }
     #[allow(dead_code)]
     pub fn interpolate_linear(start: Quat, end: Quat, t: f64) -> Quat {
