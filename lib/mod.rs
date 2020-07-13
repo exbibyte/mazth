@@ -1,10 +1,10 @@
-#[macro_use]
 pub extern crate ndarray;
 
-#[macro_use]
+#[cfg(test)]
 pub extern crate ndarray_rand;
 
 #[macro_use]
+#[cfg(test)]
 pub extern crate approx;
 
 // pub mod i_bound;
@@ -13,10 +13,11 @@ pub extern crate approx;
 // pub mod i_shape;
 // pub mod i_vicinity;
 
-pub mod mat;
-pub mod quat;
+pub mod constants;
 pub mod dualquat;
 pub mod dualscalar;
+pub mod mat;
+pub mod quat;
 
 // pub mod bound;
 // pub mod bound_sphere;

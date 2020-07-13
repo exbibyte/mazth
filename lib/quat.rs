@@ -1,8 +1,7 @@
 extern crate ndarray;
 
+use ndarray::arr1;
 use ndarray::prelude::*;
-use ndarray::{arr1, arr2, aview0, aview1, Axis};
-use ndarray::{Array, Ix3};
 
 #[allow(unused_imports)]
 use std::ops::Div;
@@ -13,7 +12,8 @@ use std::ops::IndexMut;
 
 use std::f64::consts::PI;
 
-use crate::mat::*;
+use constants::*;
+use mat::*;
 
 use std::ops::{Add, Mul, Sub};
 
@@ -170,11 +170,11 @@ impl Quat {
             (radian / 2.).cos(),
         )
     }
+    ///returns [x,y,z,angle]
     #[allow(dead_code)]
     pub fn to_axis_angle(&self) -> Matrix {
-        ///returns [x,y,z,angle]
         let k = (1. - self.w() * self.w()).sqrt();
-        if k < eps {
+        if k < EPS {
             array![[1.], [0.], [0.], [0.]]
         } else {
             let vec_x = self.x() / k;
@@ -190,35 +190,36 @@ impl Quat {
             ]
         }
     }
+    ///rotation of a vector, p, by a unit quaternion
     #[allow(dead_code)]
     pub fn rotate_vector(&self, p: MatrixView) -> Matrix {
         let quat_p = Quat::init_from_vals(p[[0, 0]], p[[1, 0]], p[[2, 0]], 0.);
-        let temp2 = self.mul(&quat_p).mul(&self.conjugate());
+        let temp2 = &(self * &quat_p) * &self.conjugate();
         array![[temp2.x()], [temp2.y()], [temp2.z()]]
     }
     #[allow(dead_code)]
     pub fn reflection_in_plane(&self, p: MatrixView) -> Matrix {
         let quat_p = Quat::init_from_vals(p[[0, 0]], p[[1, 0]], p[[2, 0]], 0.);
-        let temp = self.mul(&quat_p);
-        let temp2 = temp.mul(self);
+        let temp = self * &quat_p;
+        let temp2 = &temp * self;
         array![[temp2.x()], [temp2.y()], [temp2.z()]]
     }
     #[allow(dead_code)]
     pub fn parallel_component_of_plane(&self, p: MatrixView) -> Matrix {
         let quat_p = Quat::init_from_vals(p[[0, 0]], p[[1, 0]], p[[2, 0]], 0.);
-        let temp = self.mul(&quat_p);
-        let temp2 = temp.mul(self);
-        let temp3 = quat_p.add(&temp2);
-        let temp4 = temp3.scale(0.5);
+        let temp = self * &quat_p;
+        let temp2 = &temp * self;
+        let temp3 = &quat_p + &temp2;
+        let temp4 = 0.5 * &temp3;
         array![[temp4.x()], [temp4.y()], [temp4.z()]]
     }
     #[allow(dead_code)]
     pub fn orthogonal_component_of_plane(&self, p: MatrixView) -> Matrix {
         let quat_p = Quat::init_from_vals(p[[0, 0]], p[[1, 0]], p[[2, 0]], 0.);
-        let temp = self.mul(&quat_p);
-        let temp2 = temp.mul(self);
-        let temp3 = quat_p.minus(&temp2);
-        let temp4 = temp3.scale(0.5);
+        let temp = self * &quat_p;
+        let temp2 = &temp * self;
+        let temp3 = &quat_p - &temp2;
+        let temp4 = 0.5 * &temp3;
         array![[temp4.x()], [temp4.y()], [temp4.z()]]
     }
     #[allow(dead_code)]
@@ -342,14 +343,11 @@ impl Quat {
         let conj = self.conjugate();
         let norm = conj.norm_squared();
         assert!(norm != 0.);
-        conj.scale(1. / norm)
+        (1. / norm) * &conj
     }
     #[allow(dead_code)]
     pub fn dot(&self, other: &Self) -> f64 {
-        self.x() * other.x() +
-            self.y() * other.y() +
-            self.z() * other.z() +
-            self.w() * other.w()
+        self.x() * other.x() + self.y() * other.y() + self.z() * other.z() + self.w() * other.w()
     }
     #[allow(dead_code)]
     pub fn interpolate_linear(start: Quat, end: Quat, t: f64) -> Quat {
@@ -413,10 +411,24 @@ impl Add for &Quat {
     }
 }
 
-impl Mul for &Quat {
+impl<'a> Mul<&'a Quat> for &'a Quat {
     type Output = Quat;
     fn mul(self, rhs: Self) -> Self::Output {
         self.mul(rhs)
+    }
+}
+
+impl Mul<f64> for &Quat {
+    type Output = Quat;
+    fn mul(self, rhs: f64) -> Self::Output {
+        self.scale(rhs)
+    }
+}
+
+impl Mul<&Quat> for f64 {
+    type Output = Quat;
+    fn mul(self, rhs: &Quat) -> Quat {
+        rhs.scale(self)
     }
 }
 
