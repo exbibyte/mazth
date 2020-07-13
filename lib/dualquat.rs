@@ -91,8 +91,7 @@ impl DualQuat {
         DualQuat::new(self.quat_rot().conjugate(), self.quat_tra().conjugate())
     }
     pub fn sclerp(&self, other: &Self, t: f64) -> DualQuat {
-        let q = (&self.conjugate() * other).pow(t);
-        self * &q
+        self * (&(&self.conjugate() * other).pow(t))
     }
     fn pow(&self, e: f64) -> DualQuat {
         let mut d = self.clone();

@@ -1,13 +1,15 @@
-use i_bound::IBound;
-use i_shape::{IShape, ShapeType};
-use i_vicinity::IVicinity;
+use ndarray::prelude::*;
 
-use bound::AxisAlignedBBox;
-use mat::Mat3x1;
+use bound::IBound;
+use shape::{IShape, ShapeType};
+use vicinity::IVicinity;
+
+use bound_aabb::AxisAlignedBBox;
+use mat::*;
 
 #[derive(Debug, Clone)]
 pub struct Point3 {
-    pub _ori: Mat3x1<f64>,
+    pub _ori: Matrix1D,
     pub _bound: AxisAlignedBBox,
     pub _vicinity: f64,
 }
@@ -16,9 +18,7 @@ impl Point3 {
     pub fn init(origin: &[f64]) -> Point3 {
         assert!(origin.len() == 3);
         Point3 {
-            _ori: Mat3x1 {
-                _val: [origin[0], origin[1], origin[2]],
-            },
+            _ori: arr1(&[origin[0], origin[1], origin[2]]),
             _bound: AxisAlignedBBox::init(ShapeType::Point, &origin[0..3]),
             _vicinity: 0.000001f64,
         }
@@ -36,7 +36,7 @@ impl IShape for Point3 {
         &self._bound
     }
     // this shall test for intersection of bounding shapes first before procedding to test intersection using algorithms of higher complexity
-    fn get_intersect(&self, other: &dyn IShape) -> (bool, Option<Mat3x1<f64>>) {
+    fn get_intersect(&self, other: &dyn IShape) -> (bool, Option<Matrix1D>) {
         if !self.get_bound().intersect(other.get_bound()) {
             return (false, None);
         } else {
@@ -49,7 +49,7 @@ impl IShape for Point3 {
                     {
                         return (false, None);
                     } else {
-                        return (true, Some(self._ori));
+                        return (true, Some(self._ori.clone()));
                     }
                 }
                 ShapeType::Ray => {
@@ -78,8 +78,8 @@ impl IShape for Point3 {
             }
         }
     }
-    fn get_support(&self, _v: &Mat3x1<f64>) -> Option<Mat3x1<f64>> {
-        Some(self._ori)
+    fn get_support(&self, _v: &Matrix1D) -> Option<Matrix1D> {
+        Some(self._ori.clone())
     }
 }
 

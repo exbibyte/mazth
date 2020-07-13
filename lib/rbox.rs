@@ -1,13 +1,15 @@
-use i_bound::IBound;
-use i_shape::{IShape, ShapeType};
-use i_vicinity::IVicinity;
+use ndarray::prelude::*;
 
-use bound::AxisAlignedBBox;
-use mat::Mat3x1;
+use bound::IBound;
+use shape::{IShape, ShapeType};
+use vicinity::IVicinity;
+
+use bound_aabb::AxisAlignedBBox;
+use mat::*;
 
 #[derive(Debug, Clone)]
 pub struct RecBox {
-    pub _ori: Mat3x1<f64>,
+    pub _ori: Matrix1D,
     pub _size: f64,
     pub _bound: AxisAlignedBBox,
     pub _vicinity: f64,
@@ -17,9 +19,7 @@ impl RecBox {
     pub fn init(origin: &[f64], size: f64) -> RecBox {
         assert!(origin.len() == 3);
         RecBox {
-            _ori: Mat3x1 {
-                _val: [origin[0], origin[1], origin[2]],
-            },
+            _ori: arr1(&[origin[0], origin[1], origin[2]]),
             _size: size, //half of the length of box edge
             _bound: AxisAlignedBBox::init(ShapeType::Box, &[&origin[0..3], &[size]].concat()),
             _vicinity: 0.000001f64,
@@ -38,7 +38,7 @@ impl IShape for RecBox {
         &self._bound
     }
     // this shall test for intersection of bounding shapes first before procedding to test intersection using algorithms of higher complexity
-    fn get_intersect(&self, other: &dyn IShape) -> (bool, Option<Mat3x1<f64>>) {
+    fn get_intersect(&self, other: &dyn IShape) -> (bool, Option<Matrix1D>) {
         if !self.get_bound().intersect(other.get_bound()) {
             return (false, None);
         } else {
@@ -46,13 +46,11 @@ impl IShape for RecBox {
                 ShapeType::Point => {
                     //covered by bbox test
                     let other_shape_data = other.get_shape_data();
-                    let b_off = Mat3x1 {
-                        _val: [
-                            other_shape_data[0],
-                            other_shape_data[1],
-                            other_shape_data[2],
-                        ],
-                    };
+                    let b_off = arr1(&[
+                        other_shape_data[0],
+                        other_shape_data[1],
+                        other_shape_data[2],
+                    ]);
                     return (true, Some(b_off));
                 }
                 _ => {
@@ -61,47 +59,28 @@ impl IShape for RecBox {
             }
         }
     }
-    fn get_support(&self, v: &Mat3x1<f64>) -> Option<Mat3x1<f64>> {
-        if v.magnitude() != Some(0f64) {
+    fn get_support(&self, v: &Matrix1D) -> Option<Matrix1D> {
+        if mag_vec_l2_1d(&v.view()) > 0.000_001f64 {
             //get a furthest point in the given direction v
             let points = [
-                Mat3x1 {
-                    _val: [self._size, self._size, self._size],
-                },
-                Mat3x1 {
-                    _val: [-self._size, self._size, self._size],
-                },
-                Mat3x1 {
-                    _val: [self._size, -self._size, self._size],
-                },
-                Mat3x1 {
-                    _val: [-self._size, -self._size, self._size],
-                },
-                Mat3x1 {
-                    _val: [self._size, self._size, -self._size],
-                },
-                Mat3x1 {
-                    _val: [-self._size, self._size, -self._size],
-                },
-                Mat3x1 {
-                    _val: [self._size, -self._size, -self._size],
-                },
-                Mat3x1 {
-                    _val: [-self._size, -self._size, -self._size],
-                },
+                arr1(&[self._size, self._size, self._size]),
+                arr1(&[-self._size, self._size, self._size]),
+                arr1(&[self._size, -self._size, self._size]),
+                arr1(&[-self._size, -self._size, self._size]),
+                arr1(&[self._size, self._size, -self._size]),
+                arr1(&[-self._size, self._size, -self._size]),
+                arr1(&[self._size, -self._size, -self._size]),
+                arr1(&[-self._size, -self._size, -self._size]),
             ];
 
             let furthest = points
                 .iter()
-                .map(|x| x.dot(v).unwrap())
+                .map(|x| x.dot(v))
                 .enumerate()
                 .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
                 .unwrap();
 
-            let o = self
-                ._ori
-                .plus(&points[furthest.0])
-                .expect("support operation unsuccessful.");
+            let o = &self._ori + &points[furthest.0];
             Some(o)
         } else {
             None

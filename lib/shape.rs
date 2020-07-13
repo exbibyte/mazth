@@ -1,8 +1,8 @@
-use mat::Mat3x1;
+use bound::IBound;
+use mat::*;
+use vicinity::IVicinity;
 
-use i_bound::IBound;
-use i_vicinity::IVicinity;
-
+#[derive(Clone, Copy, Debug)]
 pub enum ShapeType {
     //primitive shapes
     Point,
@@ -24,7 +24,7 @@ pub trait IShape: IVicinity<f64> {
     fn get_type(&self) -> ShapeType;
     fn get_bound(&self) -> &dyn IBound;
     //optionally returns a location of intersection of bounding shapes, preferrably closest of such locations
-    fn get_intersect(&self, other: &dyn IShape) -> (bool, Option<Mat3x1<f64>>);
+    fn get_intersect(&self, other: &dyn IShape) -> (bool, Option<Matrix1D>);
     //required for gjk intersection test
-    fn get_support(&self, v: &Mat3x1<f64>) -> Option<Mat3x1<f64>>;
+    fn get_support(&self, v: &Matrix1D) -> Option<Matrix1D>;
 }

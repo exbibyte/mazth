@@ -1,14 +1,16 @@
-use i_bound::IBound;
-use i_shape::{IShape, ShapeType};
-use i_vicinity::IVicinity;
+use ndarray::prelude::*;
 
-use bound::AxisAlignedBBox;
-use mat::Mat3x1;
+use bound::IBound;
+use shape::{IShape, ShapeType};
+use vicinity::IVicinity;
+
+use bound_aabb::AxisAlignedBBox;
+use mat::*;
 
 #[derive(Debug, Clone)]
 pub struct Line3 {
-    pub _a: Mat3x1<f64>,
-    pub _b: Mat3x1<f64>,
+    pub _a: Matrix1D,
+    pub _b: Matrix1D,
     pub _bound: AxisAlignedBBox,
     pub _vicinity: f64,
 }
@@ -52,12 +54,8 @@ impl Line3 {
             .unwrap();
 
         Line3 {
-            _a: Mat3x1 {
-                _val: [a[0], a[1], a[2]],
-            },
-            _b: Mat3x1 {
-                _val: [b[0], b[1], b[2]],
-            },
+            _a: arr1(&[a[0], a[1], a[2]]),
+            _b: arr1(&[b[0], b[1], b[2]]),
             _bound: AxisAlignedBBox::init(
                 ShapeType::Rect,
                 &[x_min, y_min, z_min, x_max, y_max, z_max],
@@ -80,7 +78,7 @@ impl IShape for Line3 {
         &self._bound
     }
     // this shall test for intersection of bounding shapes first before procedding to test intersection using algorithms of higher complexity
-    fn get_intersect(&self, other: &dyn IShape) -> (bool, Option<Mat3x1<f64>>) {
+    fn get_intersect(&self, other: &dyn IShape) -> (bool, Option<Matrix1D>) {
         if !self.get_bound().intersect(other.get_bound()) {
             return (false, None);
         } else {
@@ -92,7 +90,7 @@ impl IShape for Line3 {
             }
         }
     }
-    fn get_support(&self, _v: &Mat3x1<f64>) -> Option<Mat3x1<f64>> {
+    fn get_support(&self, _v: &Matrix1D) -> Option<Matrix1D> {
         unimplemented!();
     }
 }

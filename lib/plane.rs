@@ -1,14 +1,16 @@
-use i_bound::IBound;
-use i_shape::{IShape, ShapeType};
-use i_vicinity::IVicinity;
+use ndarray::prelude::*;
 
-use bound::AxisAlignedBBox;
-use mat::Mat3x1;
+use bound::IBound;
+use shape::{IShape, ShapeType};
+use vicinity::IVicinity;
+
+use bound_aabb::AxisAlignedBBox;
+use mat::*;
 
 #[derive(Debug, Clone)]
 pub struct Plane {
-    pub _offset: Mat3x1<f64>,
-    pub _normal: Mat3x1<f64>,
+    pub _offset: Matrix1D,
+    pub _normal: Matrix1D,
     pub _bound: AxisAlignedBBox,
     pub _vicinity: f64,
 }
@@ -18,14 +20,8 @@ impl Plane {
         assert!(offset.len() == 3);
         assert!(normal.len() == 3);
         Plane {
-            _offset: Mat3x1 {
-                _val: [offset[0], offset[1], offset[2]],
-            },
-            _normal: Mat3x1 {
-                _val: [normal[0], normal[1], normal[2]],
-            }
-            .normalize()
-            .unwrap(),
+            _offset: arr1(&[offset[0], offset[1], offset[2]]),
+            _normal: normalize_vec_l2_1d(&arr1(&[normal[0], normal[1], normal[2]]).view()),
             _bound: AxisAlignedBBox::init(
                 ShapeType::Plane,
                 &[&offset[0..3], &normal[0..3]].concat(),
@@ -53,7 +49,7 @@ impl IShape for Plane {
         &self._bound
     }
     // this shall test for intersection of bounding shapes first before procedding to test intersection using algorithms of higher complexity
-    fn get_intersect(&self, other: &dyn IShape) -> (bool, Option<Mat3x1<f64>>) {
+    fn get_intersect(&self, other: &dyn IShape) -> (bool, Option<Matrix1D>) {
         if !self.get_bound().intersect(other.get_bound()) {
             return (false, None);
         } else {
@@ -71,15 +67,13 @@ impl IShape for Plane {
                 }
                 ShapeType::Point => {
                     let other_shape_data = other.get_shape_data();
-                    let b_off = Mat3x1 {
-                        _val: [
-                            other_shape_data[0],
-                            other_shape_data[1],
-                            other_shape_data[2],
-                        ],
-                    };
-                    let k = self._normal.dot(&self._offset).unwrap();
-                    let c = self._normal.dot(&b_off).unwrap();
+                    let b_off = arr1(&[
+                        other_shape_data[0],
+                        other_shape_data[1],
+                        other_shape_data[2],
+                    ]);
+                    let k = self._normal.dot(&self._offset);
+                    let c = self._normal.dot(&b_off);
                     let d = k - c;
                     if !self.within_vicinity(d, 0f64) {
                         return (false, None);
@@ -92,7 +86,7 @@ impl IShape for Plane {
             }
         }
     }
-    fn get_support(&self, _v: &Mat3x1<f64>) -> Option<Mat3x1<f64>> {
+    fn get_support(&self, _v: &Matrix1D) -> Option<Matrix1D> {
         None
     }
 }

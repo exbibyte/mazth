@@ -97,6 +97,19 @@ pub fn cross_vec(a: &MatrixView, b: &MatrixView) -> Matrix {
     ]
 }
 
+pub fn cross_vec_1d(a: &Matrix1DView, b: &Matrix1DView) -> Matrix1D {
+    assert!(a.shape().len() == 1);
+    assert!(b.shape().len() == 1);
+    assert!(a.shape()[0] == 3);
+    assert!(b.shape()[0] == 3);
+    arr1(&[
+        a[1] * b[2] - b[1] * a[2],
+        -a[0] * b[2] + b[0] * a[2],
+        a[0] * b[1] - b[0] * a[1],
+        0.,
+    ])
+}
+
 pub fn mag_vec_l2_1d(a: &Matrix1DView) -> f64 {
     (a * a).sum().sqrt()
 }

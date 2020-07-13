@@ -1,13 +1,15 @@
-use i_bound::IBound;
-use i_shape::{IShape, ShapeType};
-use i_vicinity::IVicinity;
+use ndarray::prelude::*;
 
-use bound::AxisAlignedBBox;
-use mat::Mat3x1;
+use bound::IBound;
+use shape::{IShape, ShapeType};
+use vicinity::IVicinity;
+
+use bound_aabb::AxisAlignedBBox;
+use mat::*;
 
 #[derive(Debug, Clone)]
 pub struct Sphere {
-    pub _ori: Mat3x1<f64>,
+    pub _ori: Matrix1D,
     pub _radius: f64,
     pub _bound: AxisAlignedBBox,
     pub _vicinity: f64,
@@ -17,9 +19,7 @@ impl Sphere {
     pub fn init(origin: &[f64], r: f64) -> Sphere {
         assert!(origin.len() == 3);
         Sphere {
-            _ori: Mat3x1 {
-                _val: [origin[0], origin[1], origin[2]],
-            },
+            _ori: arr1(&[origin[0], origin[1], origin[2]]),
             _radius: r,
             _bound: AxisAlignedBBox::init(ShapeType::Sphere, &[&origin[0..3], &[r]].concat()),
             _vicinity: 0.000001f64,
@@ -38,33 +38,31 @@ impl IShape for Sphere {
         &self._bound
     }
     // this shall test for intersection of bounding shapes first before procedding to test intersection using algorithms of higher complexity
-    fn get_intersect(&self, other: &dyn IShape) -> (bool, Option<Mat3x1<f64>>) {
+    fn get_intersect(&self, other: &dyn IShape) -> (bool, Option<Matrix1D>) {
         if !self.get_bound().intersect(other.get_bound()) {
             return (false, None);
         } else {
             match other.get_type() {
                 ShapeType::Sphere => {
                     let other_shape_data = other.get_shape_data();
-                    let b_off = Mat3x1 {
-                        _val: [
-                            other_shape_data[0],
-                            other_shape_data[1],
-                            other_shape_data[2],
-                        ],
-                    };
+                    let b_off = arr1(&[
+                        other_shape_data[0],
+                        other_shape_data[1],
+                        other_shape_data[2],
+                    ]);
                     let a_r = self._radius;
                     let b_r = other_shape_data[3];
 
-                    let a_off = self._ori;
-                    let c = b_off.minus(&a_off).unwrap();
-                    let d = c.magnitude().unwrap();
+                    let ref a_off = self._ori;
+                    let c = b_off - a_off;
+                    let d = mag_vec_l2_1d(&c.view());
                     if d > b_r + a_r {
                         return (false, None);
                     } else {
                         //calculate a mid point average
                         let f = a_r / (a_r + b_r);
-                        let g = c.scale(f).unwrap();
-                        return (true, Some(a_off.plus(&g).unwrap()));
+                        let g = c * f;
+                        return (true, Some(a_off + &g));
                     }
                 }
                 ShapeType::Ray => {
@@ -73,14 +71,12 @@ impl IShape for Sphere {
                 }
                 ShapeType::Point => {
                     let other_shape_data = other.get_shape_data();
-                    let b_off = Mat3x1 {
-                        _val: [
-                            other_shape_data[0],
-                            other_shape_data[1],
-                            other_shape_data[2],
-                        ],
-                    };
-                    let d = b_off.minus(&self._ori).unwrap();
+                    let b_off = arr1(&[
+                        other_shape_data[0],
+                        other_shape_data[1],
+                        other_shape_data[2],
+                    ]);
+                    let d = &b_off - &self._ori;
                     for i in 0..3 {
                         if d[i] > self._radius {
                             return (false, None);
@@ -90,20 +86,16 @@ impl IShape for Sphere {
                 }
                 ShapeType::Plane => {
                     let other_shape_data = other.get_shape_data();
-                    let b_off = Mat3x1 {
-                        _val: [
-                            other_shape_data[0],
-                            other_shape_data[1],
-                            other_shape_data[2],
-                        ],
-                    };
-                    let b_nor = Mat3x1 {
-                        _val: [
-                            other_shape_data[3],
-                            other_shape_data[4],
-                            other_shape_data[5],
-                        ],
-                    };
+                    let b_off = arr1(&[
+                        other_shape_data[0],
+                        other_shape_data[1],
+                        other_shape_data[2],
+                    ]);
+                    let b_nor = arr1(&[
+                        other_shape_data[3],
+                        other_shape_data[4],
+                        other_shape_data[5],
+                    ]);
                     //x = -plane_normal * t + sphere_center
                     //dot( plane_normal, x ) = dot( plane_normal, plane_offset ) = k
                     //substitution:
@@ -111,15 +103,12 @@ impl IShape for Sphere {
                     //-t + dot( plane_normal, sphere_center ) = k
                     //t = dot( plane_normal, sphere_center ) - k
 
-                    let k = b_nor.dot(&b_off).unwrap();
-                    let t = b_nor.dot(&self._ori).unwrap() - k;
+                    let k = b_nor.dot(&b_off);
+                    let t = b_nor.dot(&self._ori) - k;
                     if t > self._radius {
                         return (false, None);
                     } else {
-                        return (
-                            true,
-                            Some(b_nor.scale(-t).unwrap().plus(&self._ori).unwrap()),
-                        );
+                        return (true, Some(b_nor * -t + &self._ori));
                     }
                 }
                 _ => {
@@ -128,17 +117,10 @@ impl IShape for Sphere {
             }
         }
     }
-    fn get_support(&self, v: &Mat3x1<f64>) -> Option<Mat3x1<f64>> {
-        if v.magnitude() != Some(0f64) {
-            let v_adjusted = v
-                .normalize()
-                .expect("normalization unsuccessful")
-                .scale(self._radius)
-                .expect("scale unsuccessful");
-            let o = self
-                ._ori
-                .plus(&v_adjusted)
-                .expect("support operation unsuccessful.");
+    fn get_support(&self, v: &Matrix1D) -> Option<Matrix1D> {
+        if mag_vec_l2_1d(&v.view()) > 0.000_0001f64 {
+            let v_adjusted = normalize_vec_l2_1d(&v.view()) * self._radius;
+            let o = &self._ori + &v_adjusted;
             Some(o)
         } else {
             None

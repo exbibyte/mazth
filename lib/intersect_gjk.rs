@@ -1,46 +1,48 @@
+use ndarray::prelude::*;
+
 //based on reference tutorial from http://www.dyn4j.org/2010/04/gjk-gilbert-johnson-keerthi/
 
-use i_shape::{IShape, ShapeType};
-use mat::Mat3x1;
+use mat::*;
+use shape::{IShape, ShapeType};
 
-fn support(a: &dyn IShape, b: &dyn IShape, v: &Mat3x1<f64>) -> Option<Mat3x1<f64>> {
+fn support(a: &dyn IShape, b: &dyn IShape, v: &Matrix1D) -> Option<Matrix1D> {
     let p0 = match a.get_support(&v) {
         Some(o) => o,
         _ => return None,
     };
-    let v_oppose = v.scale(-1f64).unwrap();
+    let v_oppose = v * -1f64;
     let p1 = match b.get_support(&v_oppose) {
         Some(o) => o,
         _ => return None,
     };
-    let p10 = p0.minus(&p1).unwrap();
+    let p10 = &p0 - &p1;
     Some(p10)
 }
 
-fn pass_minkowski_origin(last_vert: &Mat3x1<f64>, support: &Mat3x1<f64>) -> bool {
+fn pass_minkowski_origin(last_vert: &Matrix1D, support: &Matrix1D) -> bool {
     // println!( "last vert dot product: {}", last_vert.dot( &support ).unwrap() );
-    last_vert.dot(&support).unwrap() > 0f64
+    last_vert.dot(support) > 0f64
 }
 
-fn contains_minkowski_origin(simplex: &mut Vec<Mat3x1<f64>>, support: &mut Mat3x1<f64>) -> bool {
+fn contains_minkowski_origin(simplex: &mut Vec<Matrix1D>, support: &mut Matrix1D) -> bool {
     let a = simplex.last().unwrap().clone();
-    let ao = a.scale(-1f64).unwrap();
+    let ao = &a * -1f64;
     if simplex.len() == 3 {
         //triangle case
-        let b = simplex[1];
-        let c = simplex[0];
-        let ab = b.minus(&a).unwrap();
-        let ac = c.minus(&a).unwrap();
-        let ab_normal = ac.cross(&ab).unwrap().cross(&ab).unwrap();
-        let ac_normal = ab.cross(&ac).unwrap().cross(&ac).unwrap();
-        if ab_normal.dot(&ao).unwrap() > 0f64 {
+        let ref b = simplex[1];
+        let ref c = simplex[0];
+        let ab = b - &a;
+        let ac = c - &a;
+        let ab_normal = cross_vec_1d(&(cross_vec_1d(&ac.view(), &ab.view())).view(), &ab.view());
+        let ac_normal = cross_vec_1d(&(cross_vec_1d(&ab.view(), &ac.view())).view(), &ac.view());
+        if ab_normal.dot(&ao) > 0f64 {
             //remove c and set new direction to ab_normal
-            let simplex_new = vec![simplex[1], simplex[2]];
+            let simplex_new = vec![simplex[1].clone(), simplex[2].clone()];
             *simplex = simplex_new;
             *support = ab_normal.clone();
-        } else if ac_normal.dot(&ao).unwrap() > 0f64 {
+        } else if ac_normal.dot(&ao) > 0f64 {
             //remove b and set new direction to ac_normal
-            let simplex_new = vec![simplex[0], simplex[2]];
+            let simplex_new = vec![simplex[0].clone(), simplex[2].clone()];
             *simplex = simplex_new.clone();
             *support = ac_normal.clone();
         } else {
@@ -50,16 +52,16 @@ fn contains_minkowski_origin(simplex: &mut Vec<Mat3x1<f64>>, support: &mut Mat3x
     } else {
         //line segment case
         //set direction towards minkowski origin
-        let b = simplex[0];
-        let ab = b.minus(&a).unwrap();
-        let ab_normal = ab.cross(&ao).unwrap().cross(&ao).unwrap();
-        if ab_normal.magnitude().unwrap() == 0f64 {
+        let ref b = simplex[0];
+        let ab = b - &a;
+        let ab_normal = cross_vec_1d(&cross_vec_1d(&ab.view(), &ao.view()).view(), &ao.view());
+        if mag_vec_l2_1d(&ab_normal.view()) == 0f64 {
             return true;
         } else {
             *support = ab_normal.clone();
         }
     }
-    return false;
+    false
 }
 
 pub fn query_intersect(a: &dyn IShape, b: &dyn IShape) -> Option<bool> {
@@ -73,16 +75,14 @@ pub fn query_intersect(a: &dyn IShape, b: &dyn IShape) -> Option<bool> {
         }
     }
     //set initial minkowski vertex from an arbitrary support vector
-    let mut d = Mat3x1 {
-        _val: [-1f64, 0f64, 0f64],
-    };
+    let mut d = arr1(&[-1f64, 0f64, 0f64]);
     let mut simplex = vec![];
     {
         let sup = support(a, b, &d).unwrap();
         simplex.push(sup);
     }
 
-    d = d.scale(-1f64).unwrap();
+    d = d * -1f64;
     loop {
         // println!( "support vector: {:?}", d );
         {
