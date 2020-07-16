@@ -1,6 +1,5 @@
 extern crate ndarray;
 
-use ndarray::arr1;
 use ndarray::prelude::*;
 
 #[allow(unused_imports)]
@@ -17,57 +16,52 @@ use mat::*;
 
 use std::ops::{Add, Mul, Sub};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct Quat {
-    ///data: [x,y,z,w]
-    m: Matrix1D,
+    m: Mat4x1,
 }
 
 impl Default for Quat {
     fn default() -> Quat {
         Quat {
-            m: Matrix1D::from(arr1(&[0., 0., 0., 1.])),
+            m: Mat4x1::new(&[0., 0., 0., 1.]),
         }
     }
 }
 
 impl Quat {
     pub fn x(&self) -> f64 {
-        assert_eq!(self.m.shape(), &[4]);
+        assert_eq!(self.m.shape()[0], 4);
         self.m[0]
     }
     pub fn y(&self) -> f64 {
-        assert_eq!(self.m.shape(), &[4]);
+        assert_eq!(self.m.shape()[0], 4);
         self.m[1]
     }
     pub fn z(&self) -> f64 {
-        assert_eq!(self.m.shape(), &[4]);
+        assert_eq!(self.m.shape()[0], 4);
         self.m[2]
     }
     pub fn w(&self) -> f64 {
-        assert_eq!(self.m.shape(), &[4]);
+        assert_eq!(self.m.shape()[0], 4);
         self.m[3]
     }
     pub fn x_mut(&mut self) -> &mut f64 {
-        assert_eq!(self.m.shape(), &[4]);
         &mut self.m[0]
     }
     pub fn y_mut(&mut self) -> &mut f64 {
-        assert_eq!(self.m.shape(), &[4]);
         &mut self.m[1]
     }
     pub fn z_mut(&mut self) -> &mut f64 {
-        assert_eq!(self.m.shape(), &[4]);
         &mut self.m[2]
     }
     pub fn w_mut(&mut self) -> &mut f64 {
-        assert_eq!(self.m.shape(), &[4]);
         &mut self.m[3]
     }
     #[allow(dead_code)]
     pub fn init_from_vals(x: f64, y: f64, z: f64, w: f64) -> Quat {
         Quat {
-            m: Matrix1D::from(arr1(&[x, y, z, w])),
+            m: Mat4x1::new(&[x, y, z, w]),
         }
     }
 
@@ -76,11 +70,11 @@ impl Quat {
         let w = 1. - x * x - y * y - z * z;
         if w < 0. {
             Quat {
-                m: Matrix1D::from(arr1(&[x, y, z, w])),
+                m: Mat4x1::new(&[x, y, z, w]),
             }
         } else {
             Quat {
-                m: Matrix1D::from(arr1(&[x, y, z, -1. * w.sqrt()])),
+                m: Mat4x1::new(&[x, y, z, -1. * w.sqrt()]),
             }
         }
     }

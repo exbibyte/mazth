@@ -15,7 +15,7 @@ use quat::*;
 use ndarray::arr1;
 
 ///(rot, translation) pair
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct DualQuat(Quat, Quat);
 
 impl DualQuat {

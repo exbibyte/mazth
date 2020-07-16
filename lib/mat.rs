@@ -325,6 +325,19 @@ impl Mat1x3 {
     }
 }
 
+impl Index<usize> for Mat4x1 {
+    type Output = f64;
+    fn index(&self, idx: usize) -> &Self::Output {
+        &self.0[idx]
+    }
+}
+
+impl IndexMut<usize> for Mat4x1 {
+    fn index_mut(& mut self, idx: usize) -> & mut Self::Output {
+        & mut self.0[idx]
+    }
+}
+
 impl Mul for &Mat4x1 {
     type Output = Mat4x1;
     fn mul(self, rhs: &Mat4x1) -> Self::Output {
@@ -393,6 +406,12 @@ impl Sub for &Mat4x1 {
 }
 
 impl Mat4x1 {
+    pub fn new(i:&[f64;4]) -> Self {
+        Mat4x1(*i)
+    }
+    pub fn shape(&self) -> & 'static [usize] {
+        &[4,1]
+    }
     pub fn dot(&self, other: &Mat1x4) -> Mat4x4 {
         Mat4x4([
             self.0[0] * other.0[0],
@@ -1061,49 +1080,49 @@ impl<'a> From<ArrayView<'a, f64, Ix1>> for Matrix1DView<'a> {
     }
 }
 
-// impl From<Matrix> for Arrayf32_16 {
-//     ///convert to column major ordering flattened array
-//     fn from(m: Matrix) -> Self {
-//         let mut arr = [0f32; 16];
-//         for (idx, i) in m.t().iter().take(16).enumerate() {
-//             arr[idx] = *i as _;
-//         }
-//         Self(arr)
-//     }
-// }
+impl From<Matrix> for Arrayf32_16 {
+    ///convert to column major ordering flattened array
+    fn from(m: Matrix) -> Self {
+        let mut arr = [0f32; 16];
+        for (idx, i) in m.0.t().iter().take(16).enumerate() {
+            arr[idx] = *i as _;
+        }
+        Self(arr)
+    }
+}
 
-// impl From<Matrix> for Arrayf32_9 {
-//     ///convert to column major ordering flattened array
-//     fn from(m: Matrix) -> Self {
-//         let mut arr = [0f32; 9];
-//         for (idx, i) in m.t().iter().take(9).enumerate() {
-//             arr[idx] = *i as _;
-//         }
-//         Self(arr)
-//     }
-// }
+impl From<Matrix> for Arrayf32_9 {
+    ///convert to column major ordering flattened array
+    fn from(m: Matrix) -> Self {
+        let mut arr = [0f32; 9];
+        for (idx, i) in m.0.t().iter().take(9).enumerate() {
+            arr[idx] = *i as _;
+        }
+        Self(arr)
+    }
+}
 
-// impl From<Matrix> for Arrayf32_4 {
-//     ///convert to column major ordering flattened array
-//     fn from(m: Matrix) -> Self {
-//         let mut arr = [0f32; 4];
-//         for (idx, i) in m.t().iter().take(4).enumerate() {
-//             arr[idx] = *i as _;
-//         }
-//         Self(arr)
-//     }
-// }
+impl From<Matrix> for Arrayf32_4 {
+    ///convert to column major ordering flattened array
+    fn from(m: Matrix) -> Self {
+        let mut arr = [0f32; 4];
+        for (idx, i) in m.0.t().iter().take(4).enumerate() {
+            arr[idx] = *i as _;
+        }
+        Self(arr)
+    }
+}
 
-// impl From<Matrix> for Arrayf32_3 {
-//     ///convert to column major ordering flattened array
-//     fn from(m: Matrix) -> Self {
-//         let mut arr = [0f32; 3];
-//         for (idx, i) in m.t().iter().take(3).enumerate() {
-//             arr[idx] = *i as _;
-//         }
-//         Self(arr)
-//     }
-// }
+impl From<Matrix> for Arrayf32_3 {
+    ///convert to column major ordering flattened array
+    fn from(m: Matrix) -> Self {
+        let mut arr = [0f32; 3];
+        for (idx, i) in m.0.t().iter().take(3).enumerate() {
+            arr[idx] = *i as _;
+        }
+        Self(arr)
+    }
+}
 
 impl<'a> MatrixView<'a> {
     pub fn cross_vec(&self, b: & 'a MatrixView) -> Matrix {
