@@ -19,7 +19,7 @@ impl Sphere {
     pub fn init(origin: &[f64], r: f64) -> Sphere {
         assert!(origin.len() == 3);
         Sphere {
-            _ori: arr1(&[origin[0], origin[1], origin[2]]),
+            _ori: Matrix1D::from(arr1(&[origin[0], origin[1], origin[2]])),
             _radius: r,
             _bound: AxisAlignedBBox::init(ShapeType::Sphere, &[&origin[0..3], &[r]].concat()),
             _vicinity: 0.000001f64,
@@ -45,17 +45,17 @@ impl IShape for Sphere {
             match other.get_type() {
                 ShapeType::Sphere => {
                     let other_shape_data = other.get_shape_data();
-                    let b_off = arr1(&[
+                    let b_off = Matrix1D::from(arr1(&[
                         other_shape_data[0],
                         other_shape_data[1],
                         other_shape_data[2],
-                    ]);
+                    ]));
                     let a_r = self._radius;
                     let b_r = other_shape_data[3];
 
                     let ref a_off = self._ori;
-                    let c = b_off - a_off;
-                    let d = mag_vec_l2_1d(&c.view());
+                    let c = &b_off - &a_off;
+                    let d = c.norm_l2();
                     if d > b_r + a_r {
                         return (false, None);
                     } else {
@@ -71,11 +71,11 @@ impl IShape for Sphere {
                 }
                 ShapeType::Point => {
                     let other_shape_data = other.get_shape_data();
-                    let b_off = arr1(&[
+                    let b_off = Matrix1D::from(arr1(&[
                         other_shape_data[0],
                         other_shape_data[1],
                         other_shape_data[2],
-                    ]);
+                    ]));
                     let d = &b_off - &self._ori;
                     for i in 0..3 {
                         if d[i] > self._radius {
@@ -86,16 +86,16 @@ impl IShape for Sphere {
                 }
                 ShapeType::Plane => {
                     let other_shape_data = other.get_shape_data();
-                    let b_off = arr1(&[
+                    let b_off = Matrix1D::from(arr1(&[
                         other_shape_data[0],
                         other_shape_data[1],
                         other_shape_data[2],
-                    ]);
-                    let b_nor = arr1(&[
+                    ]));
+                    let b_nor = Matrix1D::from(arr1(&[
                         other_shape_data[3],
                         other_shape_data[4],
                         other_shape_data[5],
-                    ]);
+                    ]));
                     //x = -plane_normal * t + sphere_center
                     //dot( plane_normal, x ) = dot( plane_normal, plane_offset ) = k
                     //substitution:
@@ -108,7 +108,7 @@ impl IShape for Sphere {
                     if t > self._radius {
                         return (false, None);
                     } else {
-                        return (true, Some(b_nor * -t + &self._ori));
+                        return (true, Some(&(b_nor * -t) + &self._ori));
                     }
                 }
                 _ => {
@@ -118,8 +118,8 @@ impl IShape for Sphere {
         }
     }
     fn get_support(&self, v: &Matrix1D) -> Option<Matrix1D> {
-        if mag_vec_l2_1d(&v.view()) > 0.000_0001f64 {
-            let v_adjusted = normalize_vec_l2_1d(&v.view()) * self._radius;
+        if v.norm_l2() > 0.000_0001f64 {
+            let v_adjusted = v.normalize_l2() * self._radius;
             let o = &self._ori + &v_adjusted;
             Some(o)
         } else {

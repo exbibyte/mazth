@@ -54,8 +54,8 @@ impl Line3 {
             .unwrap();
 
         Line3 {
-            _a: arr1(&[a[0], a[1], a[2]]),
-            _b: arr1(&[b[0], b[1], b[2]]),
+            _a: Matrix1D::from(arr1(&[a[0], a[1], a[2]])),
+            _b: Matrix1D::from(arr1(&[b[0], b[1], b[2]])),
             _bound: AxisAlignedBBox::init(
                 ShapeType::Rect,
                 &[x_min, y_min, z_min, x_max, y_max, z_max],

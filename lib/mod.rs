@@ -1,5 +1,7 @@
 pub extern crate ndarray;
 
+pub extern crate ndarray_linalg;
+
 #[cfg(test)]
 pub extern crate ndarray_rand;
 

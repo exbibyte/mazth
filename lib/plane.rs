@@ -20,8 +20,8 @@ impl Plane {
         assert!(offset.len() == 3);
         assert!(normal.len() == 3);
         Plane {
-            _offset: arr1(&[offset[0], offset[1], offset[2]]),
-            _normal: normalize_vec_l2_1d(&arr1(&[normal[0], normal[1], normal[2]]).view()),
+            _offset: Matrix1D::from(arr1(&[offset[0], offset[1], offset[2]])),
+            _normal: Matrix1D::from(arr1(&[normal[0], normal[1], normal[2]])).normalize_l2(),
             _bound: AxisAlignedBBox::init(
                 ShapeType::Plane,
                 &[&offset[0..3], &normal[0..3]].concat(),
@@ -67,11 +67,11 @@ impl IShape for Plane {
                 }
                 ShapeType::Point => {
                     let other_shape_data = other.get_shape_data();
-                    let b_off = arr1(&[
+                    let b_off = Matrix1D::from(arr1(&[
                         other_shape_data[0],
                         other_shape_data[1],
                         other_shape_data[2],
-                    ]);
+                    ]));
                     let k = self._normal.dot(&self._offset);
                     let c = self._normal.dot(&b_off);
                     let d = k - c;

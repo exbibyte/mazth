@@ -32,13 +32,13 @@ impl TriPrism {
     pub fn init(tri_base: &[f64], height: f64) -> TriPrism {
         assert!(tri_base.len() == 9);
 
-        let v0 = arr1(&[tri_base[0], tri_base[1], tri_base[2]]);
-        let v1 = arr1(&[tri_base[3], tri_base[4], tri_base[5]]);
-        let v2 = arr1(&[tri_base[6], tri_base[7], tri_base[8]]);
+        let v0 = Matrix1D::from(arr1(&[tri_base[0], tri_base[1], tri_base[2]]));
+        let v1 = Matrix1D::from(arr1(&[tri_base[3], tri_base[4], tri_base[5]]));
+        let v2 = Matrix1D::from(arr1(&[tri_base[6], tri_base[7], tri_base[8]]));
 
         let d1 = &v1 - &v0;
         let d2 = &v2 - &v0;
-        let normal = normalize_vec_l2_1d(&cross_vec_1d(&d1.view(), &d2.view()).view());
+        let normal = d1.cross_vec_1d(&d2).normalize_l2();
         let h_offset = normal * height;
 
         let v00 = &v0 + &h_offset;
@@ -148,11 +148,11 @@ impl IShape for TriPrism {
             match other.get_type() {
                 ShapeType::Point => {
                     let other_shape_data = other.get_shape_data();
-                    let other_point = arr1(&[
+                    let other_point = Matrix1D::from(arr1(&[
                         other_shape_data[0],
                         other_shape_data[1],
                         other_shape_data[2],
-                    ]);
+                    ]));
 
                     //test point aginst 5 half spaces from facets of the tri_prism to determine if point is inside the tri_prism
 
@@ -163,24 +163,15 @@ impl IShape for TriPrism {
                         (&self._tri_base2[0], n.clone()),
                         (
                             &self._tri_base[0],
-                            cross_vec_1d(
-                                &(&self._tri_base[1] - &self._tri_base[0]).view(),
-                                &n.view(),
-                            ),
+                            (&self._tri_base[1] - &self._tri_base[0]).cross_vec_1d(&n)
                         ),
                         (
                             &self._tri_base[1],
-                            cross_vec_1d(
-                                &(&self._tri_base[2] - &self._tri_base[1]).view(),
-                                &n.view(),
-                            ),
+                            (&self._tri_base[2] - &self._tri_base[1]).cross_vec_1d(&n)
                         ),
                         (
                             &self._tri_base[2],
-                            cross_vec_1d(
-                                &(&self._tri_base[0] - &self._tri_base[2]).view(),
-                                &n.view(),
-                            ),
+                            (&self._tri_base[0] - &self._tri_base[2]).cross_vec_1d(&n)
                         ),
                     ];
 
@@ -196,16 +187,16 @@ impl IShape for TriPrism {
                 }
                 ShapeType::Line => {
                     let other_shape_data = other.get_shape_data();
-                    let a = arr1(&[
+                    let a = Matrix1D::from(arr1(&[
                         other_shape_data[0],
                         other_shape_data[1],
                         other_shape_data[2],
-                    ]);
-                    let b = arr1(&[
+                    ]));
+                    let b = Matrix1D::from(arr1(&[
                         other_shape_data[3],
                         other_shape_data[4],
                         other_shape_data[5],
-                    ]);
+                    ]));
 
                     //test points aginst 5 half spaces from facets of the tri_prism to determine if point is inside the tri_prism
 
@@ -216,24 +207,15 @@ impl IShape for TriPrism {
                         (&self._tri_base2[0], n.clone()),
                         (
                             &self._tri_base[0],
-                            cross_vec_1d(
-                                &(&self._tri_base[1] - &self._tri_base[0]).view(),
-                                &n.view(),
-                            ),
+                            (&self._tri_base[1] - &self._tri_base[0]).cross_vec_1d(&n)
                         ),
                         (
                             &self._tri_base[1],
-                            cross_vec_1d(
-                                &(&self._tri_base[2] - &self._tri_base[1]).view(),
-                                &n.view(),
-                            ),
+                            (&self._tri_base[2] - &self._tri_base[1]).cross_vec_1d(&n)
                         ),
                         (
                             &self._tri_base[2],
-                            cross_vec_1d(
-                                &(&self._tri_base[0] - &self._tri_base[2]).view(),
-                                &n.view(),
-                            ),
+                            (&self._tri_base[0] - &self._tri_base[2]).cross_vec_1d(&n)
                         ),
                     ];
 
@@ -252,25 +234,16 @@ impl IShape for TriPrism {
 
                     //continue test using ray plane intersection
 
-                    let v = b - &a;
-                    let mag = mag_vec_l2_1d(&v.view());
+                    let v = &b - &a;
+                    let mag = v.norm_l2();
 
                     let r = Ray3::init(&[a[0], a[1], a[2]], &[v[0], v[1], v[2]]);
 
                     let ref n1 = self._normal_height;
                     let n0 = n1 * -1.;
-                    let n2 = cross_vec_1d(
-                        &(&self._tri_base[1] - &self._tri_base[0]).view(),
-                        &n1.view(),
-                    );
-                    let n3 = cross_vec_1d(
-                        &(&self._tri_base[2] - &self._tri_base[1]).view(),
-                        &n1.view(),
-                    );
-                    let n4 = cross_vec_1d(
-                        &(&self._tri_base[0] - &self._tri_base[2]).view(),
-                        &n1.view(),
-                    );
+                    let n2 = (&self._tri_base[1] - &self._tri_base[0]).cross_vec_1d(&n1);
+                    let n3 = (&self._tri_base[2] - &self._tri_base[1]).cross_vec_1d(&n1);
+                    let n4 = (&self._tri_base[0] - &self._tri_base[2]).cross_vec_1d(&n1);
 
                     let facets = vec![
                         Plane::init(
@@ -321,7 +294,7 @@ impl IShape for TriPrism {
                         let res = r.get_intersect(i);
                         if res.0 {
                             let collide_point = res.1.as_ref().unwrap();
-                            let mag2 = mag_vec_l2_1d(&(collide_point - &a).view());
+                            let mag2 = (collide_point - &a).norm_l2();
 
                             //one more check necesary for the candidate collision point
                             let is_point_inside = tests
@@ -351,7 +324,7 @@ impl IShape for TriPrism {
         }
     }
     fn get_support(&self, v: &Matrix1D) -> Option<Matrix1D> {
-        if mag_vec_l2_1d(&v.view()) > 0.000_001f64 {
+        if v.norm_l2() > 0.000_001f64 {
             //get a furthest point in the given direction v
             let points = [
                 &self._tri_base[0],

@@ -33,8 +33,8 @@ fn contains_minkowski_origin(simplex: &mut Vec<Matrix1D>, support: &mut Matrix1D
         let ref c = simplex[0];
         let ab = b - &a;
         let ac = c - &a;
-        let ab_normal = cross_vec_1d(&(cross_vec_1d(&ac.view(), &ab.view())).view(), &ab.view());
-        let ac_normal = cross_vec_1d(&(cross_vec_1d(&ab.view(), &ac.view())).view(), &ac.view());
+        let ab_normal = ac.cross_vec_1d(&ab).cross_vec_1d(&ab);
+        let ac_normal = ab.cross_vec_1d(&ac).cross_vec_1d(&ac);
         if ab_normal.dot(&ao) > 0f64 {
             //remove c and set new direction to ab_normal
             let simplex_new = vec![simplex[1].clone(), simplex[2].clone()];
@@ -54,8 +54,8 @@ fn contains_minkowski_origin(simplex: &mut Vec<Matrix1D>, support: &mut Matrix1D
         //set direction towards minkowski origin
         let ref b = simplex[0];
         let ab = b - &a;
-        let ab_normal = cross_vec_1d(&cross_vec_1d(&ab.view(), &ao.view()).view(), &ao.view());
-        if mag_vec_l2_1d(&ab_normal.view()) == 0f64 {
+        let ab_normal = (ab.cross_vec_1d(&ao)).cross_vec_1d(&ao);
+        if ab_normal.norm_l2() == 0f64 {
             return true;
         } else {
             *support = ab_normal.clone();
@@ -75,7 +75,7 @@ pub fn query_intersect(a: &dyn IShape, b: &dyn IShape) -> Option<bool> {
         }
     }
     //set initial minkowski vertex from an arbitrary support vector
-    let mut d = arr1(&[-1f64, 0f64, 0f64]);
+    let mut d = Matrix1D::from(arr1(&[-1f64, 0f64, 0f64]));
     let mut simplex = vec![];
     {
         let sup = support(a, b, &d).unwrap();

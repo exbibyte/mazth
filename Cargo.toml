@@ -12,6 +12,7 @@ readme = "README.md"
 [dependencies]
 ndarray = "0.13.0"
 ndarray-rand = "0.11.0"
+ndarray-linalg = { version = "0.12", features = ["openblas"] }
 approx = "0.3.2"
 
 [lib]

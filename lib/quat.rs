@@ -26,7 +26,7 @@ pub struct Quat {
 impl Default for Quat {
     fn default() -> Quat {
         Quat {
-            m: arr1(&[0., 0., 0., 1.]),
+            m: Matrix1D::from(arr1(&[0., 0., 0., 1.])),
         }
     }
 }
@@ -34,40 +34,40 @@ impl Default for Quat {
 impl Quat {
     pub fn x(&self) -> f64 {
         assert_eq!(self.m.shape(), &[4]);
-        self.m[[0]]
+        self.m[0]
     }
     pub fn y(&self) -> f64 {
         assert_eq!(self.m.shape(), &[4]);
-        self.m[[1]]
+        self.m[1]
     }
     pub fn z(&self) -> f64 {
         assert_eq!(self.m.shape(), &[4]);
-        self.m[[2]]
+        self.m[2]
     }
     pub fn w(&self) -> f64 {
         assert_eq!(self.m.shape(), &[4]);
-        self.m[[3]]
+        self.m[3]
     }
     pub fn x_mut(&mut self) -> &mut f64 {
         assert_eq!(self.m.shape(), &[4]);
-        &mut self.m[[0]]
+        &mut self.m[0]
     }
     pub fn y_mut(&mut self) -> &mut f64 {
         assert_eq!(self.m.shape(), &[4]);
-        &mut self.m[[1]]
+        &mut self.m[1]
     }
     pub fn z_mut(&mut self) -> &mut f64 {
         assert_eq!(self.m.shape(), &[4]);
-        &mut self.m[[2]]
+        &mut self.m[2]
     }
     pub fn w_mut(&mut self) -> &mut f64 {
         assert_eq!(self.m.shape(), &[4]);
-        &mut self.m[[3]]
+        &mut self.m[3]
     }
     #[allow(dead_code)]
     pub fn init_from_vals(x: f64, y: f64, z: f64, w: f64) -> Quat {
         Quat {
-            m: arr1(&[x, y, z, w]),
+            m: Matrix1D::from(arr1(&[x, y, z, w])),
         }
     }
 
@@ -76,11 +76,11 @@ impl Quat {
         let w = 1. - x * x - y * y - z * z;
         if w < 0. {
             Quat {
-                m: arr1(&[x, y, z, w]),
+                m: Matrix1D::from(arr1(&[x, y, z, w])),
             }
         } else {
             Quat {
-                m: arr1(&[x, y, z, -1. * w.sqrt()]),
+                m: Matrix1D::from(arr1(&[x, y, z, -1. * w.sqrt()])),
             }
         }
     }
@@ -99,19 +99,19 @@ impl Quat {
     #[allow(dead_code)]
     pub fn to_translation_matrix(&self) -> Matrix {
         //assume current quaternion corresponds to translation
-        array![
+        Matrix::from(array![
             [0., 0., 0., 2. * self.x()],
             [0., 0., 0., 2. * self.y()],
             [0., 0., 0., 2. * self.z()],
             [0., 0., 0., 1.]
-        ]
+        ])
     }
 
     #[allow(dead_code)]
     pub fn to_rotation_matrix(&self) -> Matrix {
         //assumes unit quaternion
         let a = self.normalize();
-        array![
+        Matrix::from(array![
             [
                 1. - 2. * (a.y() * a.y() + a.z() * a.z()), //first row
                 2. * (a.x() * a.y() - a.z() * a.w()),
@@ -131,29 +131,29 @@ impl Quat {
                 0.
             ],
             [0., 0., 0., 1.] //last row
-        ]
+        ])
     }
-    #[allow(dead_code)]
-    pub fn init_from_axis_angle_degree_vec(axis_angle: MatrixView) -> Quat {
-        let angle = axis_angle[[3, 0]];
-        let axis = axis_angle.slice(s![0..3, ..]);
-        let radian = angle / 180. * PI;
-        let s = array![[axis[[0, 0]]], [axis[[1, 0]]], [axis[[2, 0]]], [radian]];
-        Self::init_from_axis_angle_radian_vec(s.t())
-    }
-    #[allow(dead_code)]
-    pub fn init_from_axis_angle_radian_vec(axis_angle: MatrixView) -> Quat {
-        let radian = axis_angle[[3, 0]];
-        let axis = axis_angle.slice(s![0..3, ..]);
-        let axis_adjust = normalize_vec_l2(&axis);
-        let sine_half = (radian / 2.).sin();
-        Quat::init_from_vals(
-            axis_adjust[[0, 0]] * sine_half,
-            axis_adjust[[1, 0]] * sine_half,
-            axis_adjust[[2, 0]] * sine_half,
-            (radian / 2.).cos(),
-        )
-    }
+    // #[allow(dead_code)]
+    // pub fn init_from_axis_angle_degree_vec(axis_angle: MatrixView) -> Quat {
+    //     let angle = axis_angle[[3, 0]];
+    //     let axis = axis_angle.slice(s![0..3, ..]);
+    //     let radian = angle / 180. * PI;
+    //     let s = array![[axis[[0, 0]]], [axis[[1, 0]]], [axis[[2, 0]]], [radian]];
+    //     Self::init_from_axis_angle_radian_vec(s.t())
+    // }
+    // #[allow(dead_code)]
+    // pub fn init_from_axis_angle_radian_vec(axis_angle: MatrixView) -> Quat {
+    //     let radian = axis_angle[[3, 0]];
+    //     let axis = axis_angle.slice(s![0..3, ..]);
+    //     let axis_adjust = axis.normalize_l2()();
+    //     let sine_half = (radian / 2.).sin();
+    //     Quat::init_from_vals(
+    //         axis_adjust[[0, 0]] * sine_half,
+    //         axis_adjust[[1, 0]] * sine_half,
+    //         axis_adjust[[2, 0]] * sine_half,
+    //         (radian / 2.).cos(),
+    //     )
+    // }
     #[allow(dead_code)]
     pub fn init_from_axis_angle_degree(axis: MatrixView, angle: f64) -> Quat {
         Self::init_from_axis_angle_radian(axis, angle / 180. * PI)
@@ -161,7 +161,7 @@ impl Quat {
     #[allow(dead_code)]
     pub fn init_from_axis_angle_radian(axis: MatrixView, angle: f64) -> Quat {
         let radian = angle;
-        let axis_adjust = normalize_vec_l2(&axis);
+        let axis_adjust = axis.normalize_l2();
         let sine_half = (radian / 2.).sin();
         Quat::init_from_vals(
             axis_adjust[[0, 0]] * sine_half,
@@ -175,19 +175,19 @@ impl Quat {
     pub fn to_axis_angle(&self) -> Matrix {
         let k = (1. - self.w() * self.w()).sqrt();
         if k < EPS {
-            array![[1.], [0.], [0.], [0.]]
+            Matrix::from(array![[1.], [0.], [0.], [0.]])
         } else {
             let vec_x = self.x() / k;
             let vec_y = self.y() / k;
             let vec_z = self.z() / k;
             let l = (vec_x * vec_x + vec_y * vec_y + vec_z * vec_z).sqrt();
             // assert!(l.abs()>eps);
-            array![
+            Matrix::from(array![
                 [vec_x / l],
                 [vec_y / l],
                 [vec_z / l],
                 [2. * self.w().acos()]
-            ]
+            ])
         }
     }
     ///rotation of a vector, p, by a unit quaternion
@@ -195,14 +195,14 @@ impl Quat {
     pub fn rotate_vector(&self, p: MatrixView) -> Matrix {
         let quat_p = Quat::init_from_vals(p[[0, 0]], p[[1, 0]], p[[2, 0]], 0.);
         let temp2 = &(self * &quat_p) * &self.conjugate();
-        array![[temp2.x()], [temp2.y()], [temp2.z()]]
+        Matrix::from(array![[temp2.x()], [temp2.y()], [temp2.z()]])
     }
     #[allow(dead_code)]
     pub fn reflection_in_plane(&self, p: MatrixView) -> Matrix {
         let quat_p = Quat::init_from_vals(p[[0, 0]], p[[1, 0]], p[[2, 0]], 0.);
         let temp = self * &quat_p;
         let temp2 = &temp * self;
-        array![[temp2.x()], [temp2.y()], [temp2.z()]]
+        Matrix::from(array![[temp2.x()], [temp2.y()], [temp2.z()]])
     }
     #[allow(dead_code)]
     pub fn parallel_component_of_plane(&self, p: MatrixView) -> Matrix {
@@ -211,7 +211,7 @@ impl Quat {
         let temp2 = &temp * self;
         let temp3 = &quat_p + &temp2;
         let temp4 = 0.5 * &temp3;
-        array![[temp4.x()], [temp4.y()], [temp4.z()]]
+        Matrix::from(array![[temp4.x()], [temp4.y()], [temp4.z()]])
     }
     #[allow(dead_code)]
     pub fn orthogonal_component_of_plane(&self, p: MatrixView) -> Matrix {
@@ -220,7 +220,7 @@ impl Quat {
         let temp2 = &temp * self;
         let temp3 = &quat_p - &temp2;
         let temp4 = 0.5 * &temp3;
-        array![[temp4.x()], [temp4.y()], [temp4.z()]]
+        Matrix::from(array![[temp4.x()], [temp4.y()], [temp4.z()]])
     }
     #[allow(dead_code)]
     pub fn add(&self, other: &Self) -> Quat {

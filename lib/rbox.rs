@@ -19,7 +19,7 @@ impl RecBox {
     pub fn init(origin: &[f64], size: f64) -> RecBox {
         assert!(origin.len() == 3);
         RecBox {
-            _ori: arr1(&[origin[0], origin[1], origin[2]]),
+            _ori: Matrix1D::from(arr1(&[origin[0], origin[1], origin[2]])),
             _size: size, //half of the length of box edge
             _bound: AxisAlignedBBox::init(ShapeType::Box, &[&origin[0..3], &[size]].concat()),
             _vicinity: 0.000001f64,
@@ -46,11 +46,11 @@ impl IShape for RecBox {
                 ShapeType::Point => {
                     //covered by bbox test
                     let other_shape_data = other.get_shape_data();
-                    let b_off = arr1(&[
+                    let b_off = Matrix1D::from(arr1(&[
                         other_shape_data[0],
                         other_shape_data[1],
                         other_shape_data[2],
-                    ]);
+                    ]));
                     return (true, Some(b_off));
                 }
                 _ => {
@@ -60,17 +60,17 @@ impl IShape for RecBox {
         }
     }
     fn get_support(&self, v: &Matrix1D) -> Option<Matrix1D> {
-        if mag_vec_l2_1d(&v.view()) > 0.000_001f64 {
+        if v.norm_l2() > 0.000_001f64 {
             //get a furthest point in the given direction v
             let points = [
-                arr1(&[self._size, self._size, self._size]),
-                arr1(&[-self._size, self._size, self._size]),
-                arr1(&[self._size, -self._size, self._size]),
-                arr1(&[-self._size, -self._size, self._size]),
-                arr1(&[self._size, self._size, -self._size]),
-                arr1(&[-self._size, self._size, -self._size]),
-                arr1(&[self._size, -self._size, -self._size]),
-                arr1(&[-self._size, -self._size, -self._size]),
+                Matrix1D::from(arr1(&[self._size, self._size, self._size])),
+                Matrix1D::from(arr1(&[-self._size, self._size, self._size])),
+                Matrix1D::from(arr1(&[self._size, -self._size, self._size])),
+                Matrix1D::from(arr1(&[-self._size, -self._size, self._size])),
+                Matrix1D::from(arr1(&[self._size, self._size, -self._size])),
+                Matrix1D::from(arr1(&[-self._size, self._size, -self._size])),
+                Matrix1D::from(arr1(&[self._size, -self._size, -self._size])),
+                Matrix1D::from(arr1(&[-self._size, -self._size, -self._size])),
             ];
 
             let furthest = points

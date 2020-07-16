@@ -20,8 +20,8 @@ impl Ray3 {
         assert!(origin.len() == 3);
         assert!(dir.len() == 3);
         Ray3 {
-            _ori: arr1(&[origin[0], origin[1], origin[2]]),
-            _dir: normalize_vec_l2_1d(&arr1(&[dir[0], dir[1], dir[2]]).view()),
+            _ori: Matrix1D::from(arr1(&[origin[0], origin[1], origin[2]])),
+            _dir: Matrix1D::from(arr1(&[dir[0], dir[1], dir[2]])).normalize_l2(),
             _bound: AxisAlignedBBox::init(ShapeType::Ray, &[&origin[0..3], &dir[0..3]].concat()),
             _vicinity: 0.000001f64,
         }
@@ -54,20 +54,20 @@ impl IShape for Ray3 {
                 ShapeType::Ray => {
                     let other_shape_data = other.get_shape_data();
                     let ref a_dir = self._dir;
-                    let b_dir = arr1(&[
+                    let b_dir = Matrix1D::from(arr1(&[
                         other_shape_data[3],
                         other_shape_data[4],
                         other_shape_data[5],
-                    ]);
+                    ]));
                     let ref a_off = self._ori;
-                    let ref b_off = arr1(&[
+                    let ref b_off = Matrix1D::from(arr1(&[
                         other_shape_data[0],
                         other_shape_data[1],
                         other_shape_data[2],
-                    ]);
+                    ]));
 
                     let c = &b_dir - a_dir;
-                    let v = cross_vec_1d(&a_dir.view(), &b_dir.view());
+                    let v = a_dir.cross_vec_1d(&b_dir);
 
                     let dot_v_c = v.dot(&c);
                     if !self.within_vicinity(dot_v_c, 0f64) {
@@ -76,13 +76,13 @@ impl IShape for Ray3 {
                     }
                     //test for colinearity
                     let d = b_off - a_off;
-                    if v.t().dot(&v) < 0.000_000_1f64 {
+                    if v.t().dot(&v.view()) < 0.000_000_1f64 {
                         //lines are parallel
                         //check triangle area formed by points on ray a and b
                         let point1 = a_dir;
                         let point2 = b_off - a_off;
                         let triangle_area =
-                            mag_vec_l2_1d(&cross_vec_1d(&point1.view(), &point2.view()).view());
+                            point1.cross_vec_1d(&point2).norm_l2();
                         // println!( "triangle area: {}", triangle_area );
                         if !self.within_vicinity(triangle_area, 0f64) {
                             //no overlap
@@ -92,44 +92,44 @@ impl IShape for Ray3 {
                             //lines are colinear
                             let direction = if d.dot(a_dir) < 0f64 { -1f64 } else { 1f64 };
                             let distance =
-                                direction * mag_vec_l2_1d(&d.view()) / mag_vec_l2_1d(&a_dir.view());
+                                direction * d.norm_l2() / a_dir.norm_l2();
                             // println!( "colinear lines, distance: {}", distance );
                             if distance < 0f64 {
                                 //intersection at offset of ray a, so clamp t to 0
                                 return (true, Some(a_off.clone()));
                             } else {
                                 //intersection at offset of ray b
-                                return (true, Some(&self._dir * distance + &self._ori));
+                                return (true, Some(&self._dir * distance + self._ori.clone()));
                             }
                         }
                     } else {
                         //solvable intersection exists
-                        let numerator = cross_vec_1d(&d.view(), &b_dir.view());
-                        let t = mag_vec_l2_1d(&numerator.view()) / mag_vec_l2_1d(&v.view());
+                        let numerator = d.cross_vec_1d(&b_dir);
+                        let t = numerator.norm_l2() / v.norm_l2();
                         if t < 0f64 {
                             return (false, None);
                         } else {
-                            return (true, Some(&self._dir * t + &self._ori));
+                            return (true, Some(&self._dir * t + self._ori.clone()));
                         }
                     }
                 }
                 ShapeType::Point => {
                     let other_shape_data = other.get_shape_data();
-                    let b_off = arr1(&[
+                    let b_off = Matrix1D::from(arr1(&[
                         other_shape_data[0],
                         other_shape_data[1],
                         other_shape_data[2],
-                    ]);
+                    ]));
                     let a_dir = &self._dir;
                     let a_off = &self._ori;
                     //a_dir * t + a_off = b_off
                     //t = (b_off - a_off) / a_dir
-                    let t = (b_off - a_off) / a_dir;
+                    let t = &(&b_off - a_off) / a_dir;
                     if !self.within_vicinity(t[0], t[1]) || !self.within_vicinity(t[1], t[2]) {
                         return (false, None);
                     } else {
                         if t[0] >= 0f64 {
-                            return (true, Some(a_dir * t[0] + a_off));
+                            return (true, Some(&(a_dir * t[0]) + a_off));
                         } else {
                             //the point is behind the ray origin and direction
                             return (false, None);
@@ -138,11 +138,11 @@ impl IShape for Ray3 {
                 }
                 ShapeType::Sphere => {
                     let other_shape_data = other.get_shape_data();
-                    let ref b_off = arr1(&[
+                    let ref b_off = Matrix1D::from(arr1(&[
                         other_shape_data[0],
                         other_shape_data[1],
                         other_shape_data[2],
-                    ]);
+                    ]));
                     let b_r = other_shape_data[3];
 
                     let ref a_dir = self._dir;
@@ -180,20 +180,20 @@ impl IShape for Ray3 {
                         t2
                     };
 
-                    return (true, Some(a_dir * t + a_off));
+                    return (true, Some(&(a_dir * t) + a_off));
                 }
                 ShapeType::Plane => {
                     let other_shape_data = other.get_shape_data();
-                    let b_off = arr1(&[
+                    let b_off = Matrix1D::from(arr1(&[
                         other_shape_data[0],
                         other_shape_data[1],
                         other_shape_data[2],
-                    ]);
-                    let b_nor = arr1(&[
+                    ]));
+                    let b_nor = Matrix1D::from(arr1(&[
                         other_shape_data[3],
                         other_shape_data[4],
                         other_shape_data[5],
-                    ]);
+                    ]));
                     //ray equation: r(t) = r.offset + r.dir * t
                     //plane: p(x) = dot(normal, x-p.offset) = 0
                     //p(x) = -dot(p.normal, p.offset) + dot(p.normal, x) = 0
@@ -219,7 +219,7 @@ impl IShape for Ray3 {
                     if t < 0f64 {
                         return (false, None);
                     }
-                    return (true, Some(&self._dir * t + &self._ori));
+                    return (true, Some(&(&self._dir * t) + &self._ori));
                 }
                 _ => {
                     unimplemented!();

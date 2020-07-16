@@ -58,7 +58,7 @@ impl DualQuat {
     pub fn xform_tra(&self) -> Matrix1D {
         let a = self.normalize();
         let b = &(2. * a.quat_tra()) * &a.quat_rot().conjugate();
-        arr1(&[b.x(), b.y(), b.z(), 0.])
+        Matrix1D::from(arr1(&[b.x(), b.y(), b.z(), 0.]))
     }
     ///returns 4x4 homogeneous matrix
     pub fn xform(&self) -> Matrix {
@@ -96,9 +96,9 @@ impl DualQuat {
     fn pow(&self, e: f64) -> DualQuat {
         let mut d = self.clone();
 
-        let mut screwaxis = arr1(&[0., 0., 0.]);
-        let mut moment = arr1(&[0., 0., 0.]);
-        let mut angles = arr1(&[0., 0.]);
+        let mut screwaxis = Matrix1D::from(arr1(&[0., 0., 0.]));
+        let mut moment = Matrix1D::from(arr1(&[0., 0., 0.]));
+        let mut angles = Matrix1D::from(arr1(&[0., 0.]));
 
         let norm_a = d.get_screw_parameters(&mut screwaxis, &mut moment, &mut angles);
 
@@ -124,33 +124,33 @@ impl DualQuat {
         moment: &mut Matrix1D,
         angles: &mut Matrix1D,
     ) -> f64 {
-        let q_a = arr1(&[
+        let q_a = Matrix1D::from(arr1(&[
             self.quat_rot().x(),
             self.quat_rot().y(),
             self.quat_rot().z(),
-        ]);
+        ]));
 
-        let q_b = arr1(&[
+        let q_b = Matrix1D::from(arr1(&[
             self.quat_tra().x(),
             self.quat_tra().y(),
             self.quat_tra().z(),
-        ]);
+        ]));
 
-        let norm_a = mag_vec_l2_1d(&q_a.view());
+        let norm_a = q_a.view().norm_l2();
 
         // pure translation
         if norm_a < EPS {
-            let norm_a = mag_vec_l2_1d(&q_b.view());
-            *screwaxis = normalize_vec_l2_1d(&q_b.view());
+            let norm_a = q_b.norm_l2();
+            *screwaxis = q_b.normalize_l2();
 
             for i in 0..3 {
                 moment[i] = 0.;
             }
             angles[0] = 0.;
-            angles[1] = 2. * mag_vec_l2_1d(&q_b.view());
+            angles[1] = 2. * q_b.norm_l2();
             norm_a
         } else {
-            *screwaxis = normalize_vec_l2_1d(&q_a.view());
+            *screwaxis = q_a.normalize_l2();
             angles[0] = 2. * norm_a.atan2(self.quat_rot().w());
             //      if (angles[0] > Math.PI / 2) {
             //         angles[0] -= Math.PI;

@@ -18,7 +18,7 @@ impl Point3 {
     pub fn init(origin: &[f64]) -> Point3 {
         assert!(origin.len() == 3);
         Point3 {
-            _ori: arr1(&[origin[0], origin[1], origin[2]]),
+            _ori: Matrix1D::from(arr1(&[origin[0], origin[1], origin[2]])),
             _bound: AxisAlignedBBox::init(ShapeType::Point, &origin[0..3]),
             _vicinity: 0.000001f64,
         }
