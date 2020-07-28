@@ -9,8 +9,6 @@ pub extern crate ndarray_rand;
 #[cfg(test)]
 pub extern crate approx;
 
-// pub mod i_intersect;
-
 pub mod constants;
 pub mod dualquat;
 pub mod dualscalar;
@@ -22,6 +20,7 @@ pub mod bound_aabb;
 
 pub mod shape;
 pub mod vicinity;
+
 //todo
 // pub mod bound_sphere;
 

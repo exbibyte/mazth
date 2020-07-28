@@ -416,6 +416,18 @@ impl Mat3x1 {
     }
 }
 
+impl From<Mat3x1> for Arrayf32_3 {
+    fn from(i: Mat3x1) -> Arrayf32_3 {
+        Self([i[0] as f32, i[1] as f32, i[2] as f32])
+    }
+}
+
+impl From<Mat3x1> for Matrix1D {
+    fn from(i: Mat3x1) -> Matrix1D {
+        Matrix1D(arr1(&[i[0], i[1], i[2]]))
+    }
+}
+
 impl Index<usize> for Mat1x3 {
     type Output = f64;
     fn index(&self, idx: usize) -> &Self::Output {
@@ -554,6 +566,18 @@ impl Mat1x3 {
     }
     pub fn equal(&self, other: &Self) -> bool {
         self.0[0] == other.0[0] && self.0[1] == other.0[1] && self.0[2] == other.0[2]
+    }
+}
+
+impl From<Mat1x3> for Arrayf32_3 {
+    fn from(i: Mat1x3) -> Arrayf32_3 {
+        Self([i[0] as f32, i[1] as f32, i[2] as f32])
+    }
+}
+
+impl From<Mat1x3> for Matrix1D {
+    fn from(i: Mat1x3) -> Matrix1D {
+        Matrix1D(arr1(&[i[0], i[1], i[2]]))
     }
 }
 
@@ -746,6 +770,11 @@ impl Mat4x1 {
         let m = self.norm_l2();
         Mat4x1([self.0[0] / m, self.0[1] / m, self.0[2] / m, self.0[3] / m])
     }
+    ///normalize using homogeneous system (normalizes so that last coordinate value is 1)
+    pub fn normalize_h(self) -> Self {
+        let m = self.0[3];
+        Mat4x1([self.0[0] / m, self.0[1] / m, self.0[2] / m, self.0[3] / m])
+    }
     pub fn t(self) -> Mat1x4 {
         Mat1x4(self.0)
     }
@@ -756,6 +785,31 @@ impl Mat4x1 {
             }
         }
         true
+    }
+}
+
+impl From<Mat4x1> for Arrayf32_4 {
+    fn from(i: Mat4x1) -> Arrayf32_4 {
+        Self([i[0] as f32, i[1] as f32, i[2] as f32, i[3] as f32])
+    }
+}
+
+impl From<Mat4x1> for Matrix1D {
+    fn from(i: Mat4x1) -> Matrix1D {
+        Matrix1D(arr1(&[i[0], i[1], i[2], i[3]]))
+    }
+}
+
+impl Index<usize> for Mat1x4 {
+    type Output = f64;
+    fn index(&self, idx: usize) -> &Self::Output {
+        &self.0[idx]
+    }
+}
+
+impl IndexMut<usize> for Mat1x4 {
+    fn index_mut(&mut self, idx: usize) -> &mut Self::Output {
+        &mut self.0[idx]
     }
 }
 
@@ -947,6 +1001,18 @@ impl Mat1x4 {
             }
         }
         true
+    }
+}
+
+impl From<Mat1x4> for Arrayf32_4 {
+    fn from(i: Mat1x4) -> Arrayf32_4 {
+        Self([i[0] as f32, i[1] as f32, i[2] as f32, i[3] as f32])
+    }
+}
+
+impl From<Mat1x4> for Matrix1D {
+    fn from(i: Mat1x4) -> Matrix1D {
+        Matrix1D(arr1(&[i[0], i[1], i[2], i[3]]))
     }
 }
 
@@ -1217,6 +1283,7 @@ impl Mat3x3 {
         copy
     }
     pub fn inverse(&self) -> Result<Mat3x3, &'static str> {
+        
         use ndarray_linalg::solve::Inverse;
 
         let a = arr2(&[
@@ -1657,6 +1724,11 @@ impl Mat4x4 {
     pub fn sub_xlate(&self) -> Mat3x1 {
         Mat3x1::new([self.0[2], self.0[5], self.0[8]])
     }
+    ///normalizes using homogeneous system
+    pub fn normalize_h(&self) -> Mat4x4 {
+        let v = self[[3,3]];
+        self / v
+    }
     pub fn equal(&self, b: &Mat4x4) -> bool {
         for i in 0..16 {
             if !((self.0[i] - b.0[i]).abs() < EPS) {
@@ -1664,6 +1736,22 @@ impl Mat4x4 {
             }
         }
         true
+    }
+}
+    
+impl From<Mat3x3> for Arrayf32_9_r {
+    fn from(i: Mat3x3) -> Arrayf32_9_r {
+        Arrayf32_9_r([i.0[0] as f32, i.0[1] as f32, i.0[2] as f32,
+                       i.0[3] as f32, i.0[4] as f32, i.0[5] as f32,
+                       i.0[6] as f32, i.0[7] as f32, i.0[8] as f32])
+    }
+}
+
+impl From<Mat3x3> for Arrayf32_9_c {
+    fn from(i: Mat3x3) -> Arrayf32_9_c {
+        Arrayf32_9_c([i.0[0] as f32, i.0[3] as f32, i.0[6] as f32,
+                       i.0[1] as f32, i.0[4] as f32, i.0[7] as f32,
+                       i.0[2] as f32, i.0[5] as f32, i.0[8] as f32])
     }
 }
 
@@ -1693,6 +1781,26 @@ impl Into<Result<Mat3x3, &'static str>> for Matrix {
             ])),
             _ => Err("dimension mismatch"),
         }
+    }
+}
+
+impl From<Mat4x4> for Arrayf32_16_r {
+    fn from(i: Mat4x4) -> Arrayf32_16_r {
+        Arrayf32_16_r([i.0[0] as f32, i.0[1] as f32, i.0[2] as f32, i.0[3] as f32,
+                       i.0[4] as f32, i.0[5] as f32, i.0[6] as f32, i.0[7] as f32,
+                       i.0[8] as f32, i.0[9] as f32, i.0[10] as f32, i.0[11] as f32,
+                       i.0[12] as f32, i.0[13] as f32, i.0[14] as f32, i.0[15] as f32,
+        ])
+    }
+}
+
+impl From<Mat4x4> for Arrayf32_16_c {
+    fn from(i: Mat4x4) -> Arrayf32_16_c {
+        Arrayf32_16_c([i.0[0] as f32, i.0[4] as f32, i.0[8] as f32, i.0[12] as f32,
+                       i.0[1] as f32, i.0[5] as f32, i.0[9] as f32, i.0[13] as f32,
+                       i.0[2] as f32, i.0[6] as f32, i.0[10] as f32, i.0[14] as f32,
+                       i.0[3] as f32, i.0[7] as f32, i.0[11] as f32, i.0[15] as f32,
+        ])
     }
 }
 
@@ -1728,15 +1836,27 @@ impl Default for Matrix {
 }
 
 #[derive(Default)]
-pub struct Arrayf32_16(pub [f32; 16]);
+#[repr(C)]
+pub struct Arrayf32_16_r(pub [f32; 16]);
 
 #[derive(Default)]
-pub struct Arrayf32_9(pub [f32; 9]);
+#[repr(C)]
+pub struct Arrayf32_9_r(pub [f32; 9]);
 
 #[derive(Default)]
+#[repr(C)]
+pub struct Arrayf32_16_c(pub [f32; 16]);
+
+#[derive(Default)]
+#[repr(C)]
+pub struct Arrayf32_9_c(pub [f32; 9]);
+
+#[derive(Default)]
+#[repr(C)]
 pub struct Arrayf32_4(pub [f32; 4]);
 
 #[derive(Default)]
+#[repr(C)]
 pub struct Arrayf32_3(pub [f32; 3]);
 
 impl From<Array<f64, Ix2>> for Matrix {
@@ -1764,34 +1884,30 @@ impl<'a> From<ArrayView<'a, f64, Ix1>> for Matrix1DView<'a> {
 }
 
 impl From<Matrix1D> for Mat3x1 {
-    ///convert to column major ordering flattened array
     fn from(m: Matrix1D) -> Self {
         Self::new([m[0], m[1], m[2]])
     }
 }
 
 impl From<Matrix1D> for Mat4x1 {
-    ///convert to column major ordering flattened array
     fn from(m: Matrix1D) -> Self {
         Self::new([m[0], m[1], m[2], m[3]])
     }
 }
 
 impl From<Matrix1D> for Mat1x3 {
-    ///convert to column major ordering flattened array
     fn from(m: Matrix1D) -> Self {
         Self::new([m[0], m[1], m[2]])
     }
 }
 
 impl From<Matrix1D> for Mat1x4 {
-    ///convert to column major ordering flattened array
     fn from(m: Matrix1D) -> Self {
         Self::new([m[0], m[1], m[2], m[3]])
     }
 }
 
-impl From<Matrix> for Arrayf32_16 {
+impl From<Matrix> for Arrayf32_16_c {
     ///convert to column major ordering flattened array
     fn from(m: Matrix) -> Self {
         let mut arr = [0f32; 16];
@@ -1802,7 +1918,18 @@ impl From<Matrix> for Arrayf32_16 {
     }
 }
 
-impl From<Matrix> for Arrayf32_9 {
+impl From<Matrix> for Arrayf32_16_r {
+    ///convert to row major ordering flattened array
+    fn from(m: Matrix) -> Self {
+        let mut arr = [0f32; 16];
+        for (idx, i) in m.0.iter().take(16).enumerate() {
+            arr[idx] = *i as _;
+        }
+        Self(arr)
+    }
+}
+
+impl From<Matrix> for Arrayf32_9_c {
     ///convert to column major ordering flattened array
     fn from(m: Matrix) -> Self {
         let mut arr = [0f32; 9];
@@ -1813,14 +1940,25 @@ impl From<Matrix> for Arrayf32_9 {
     }
 }
 
+impl From<Matrix> for Arrayf32_9_r {
+    ///convert to row major ordering flattened array
+    fn from(m: Matrix) -> Self {
+        let mut arr = [0f32; 9];
+        for (idx, i) in m.0.iter().take(9).enumerate() {
+            arr[idx] = *i as _;
+        }
+        Self(arr)
+    }
+}
+
 impl From<Matrix> for Arrayf32_4 {
     ///convert to column major ordering flattened array
     fn from(m: Matrix) -> Self {
         let mut arr = [0f32; 4];
-        for (idx, i) in m.0.t().iter().take(4).enumerate() {
+        for (idx, i) in m.0.iter().take(4).enumerate() {
             arr[idx] = *i as _;
         }
-        Self(arr)
+        Arrayf32_4(arr)
     }
 }
 
@@ -1828,10 +1966,10 @@ impl From<Matrix> for Arrayf32_3 {
     ///convert to column major ordering flattened array
     fn from(m: Matrix) -> Self {
         let mut arr = [0f32; 3];
-        for (idx, i) in m.0.t().iter().take(3).enumerate() {
+        for (idx, i) in m.0.iter().take(3).enumerate() {
             arr[idx] = *i as _;
         }
-        Self(arr)
+        Arrayf32_3(arr)
     }
 }
 
