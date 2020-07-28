@@ -62,4 +62,20 @@ fn test_mat3x3() {
             1f64, 0f64, 0f64, 0f64, 1f64, 0f64, 0f64, 0f64, 1f64,
         ])));
     }
+    {
+        //inverse
+        let a = Mat3x3::new_r([3., 3., 3., 0., 6., 0., 0., 0., 9.]);
+        let b = a.inverse().expect("inverse");
+        assert!(b.equal(&Mat3x3::new_r([
+            1. / 3.,
+            -1. / 6.,
+            -1. / 9.,
+            0.,
+            1. / 6.,
+            0.,
+            0.,
+            0.,
+            1. / 9.
+        ])));
+    }
 }
