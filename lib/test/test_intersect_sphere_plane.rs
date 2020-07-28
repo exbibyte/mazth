@@ -1,10 +1,7 @@
-use i_comparable::IComparableError;
-use i_shape::IShape;
-
+use mat::*;
 use plane::Plane;
+use shape::Shape;
 use sphere::Sphere;
-
-use mat::Mat3x1;
 
 #[test]
 fn test_intersect_sphere_plane() {
@@ -14,14 +11,7 @@ fn test_intersect_sphere_plane() {
         let b = Plane::init(&[5f64, 0f64, 0f64], &[1f64, 0f64, 0f64]);
         match a.get_intersect(&b) {
             (true, Some(loc)) => {
-                assert!(loc
-                    .is_equal(
-                        &Mat3x1 {
-                            _val: [5f64, 0f64, 0f64]
-                        },
-                        0.0001f64
-                    )
-                    .unwrap());
+                assert!(Mat3x1::from(loc).equal(&Mat3x1::new([5f64, 0f64, 0f64])));
             }
             _ => panic!("unexpected result for sphere plane intersection"),
         }
@@ -33,14 +23,7 @@ fn test_intersect_sphere_plane() {
         let b = Plane::init(&[5f64, 0f64, 0f64], &[1f64, 0f64, 0f64]);
         match a.get_intersect(&b) {
             (true, Some(loc)) => {
-                assert!(loc
-                    .is_equal(
-                        &Mat3x1 {
-                            _val: [5f64, 4f64, 6f64]
-                        },
-                        0.0001f64
-                    )
-                    .unwrap());
+                assert!(Mat3x1::from(loc).equal(&Mat3x1::new([5f64, 4f64, 6f64])));
             }
             _ => panic!("unexpected result for sphere plane intersection"),
         }
@@ -52,14 +35,7 @@ fn test_intersect_sphere_plane() {
         let b = Plane::init(&[10f64, 4f64, 6f64], &[1f64, 1f64, 1f64]);
         match a.get_intersect(&b) {
             (true, Some(loc)) => {
-                assert!(loc
-                    .is_equal(
-                        &Mat3x1 {
-                            _val: [10f64, 4f64, 6f64]
-                        },
-                        0.0001f64
-                    )
-                    .unwrap());
+                assert!(Mat3x1::from(loc).equal(&Mat3x1::new([10f64, 4f64, 6f64])));
             }
             _ => panic!("unexpected result for sphere plane intersection"),
         }

@@ -1,6 +1,6 @@
-use i_comparable::IComparableError;
-use i_shape::IShape;
+use shape::Shape;
 
+use mat::*;
 use point::Point3;
 use rbox::RecBox;
 
@@ -12,7 +12,7 @@ fn test_intersect_point_point() {
         let b = RecBox::init(&[0., 0., 0.], 10.);
         match a.get_intersect(&b) {
             (true, Some(loc)) => {
-                assert!(loc.is_equal(&a._ori, 0.0001f64).unwrap());
+                assert!(Mat3x1::from(loc).equal(&Mat3x1::from(a._ori)));
             }
             _ => panic!("unexpected result for ray point intersection"),
         }

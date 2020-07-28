@@ -1,10 +1,7 @@
-use i_comparable::IComparableError;
-use i_shape::IShape;
-
+use mat::*;
 use plane::Plane;
 use point::Point3;
-
-use mat::Mat3x1;
+use shape::Shape;
 
 #[test]
 fn test_intersect_plane_point() {
@@ -14,14 +11,7 @@ fn test_intersect_plane_point() {
         let b = Plane::init(&[1f64, 1f64, 1f64], &[0f64, 1f64, 0f64]);
         match a.get_intersect(&b) {
             (true, Some(loc)) => {
-                assert!(loc
-                    .is_equal(
-                        &Mat3x1 {
-                            _val: [2f64, 1f64, 2f64]
-                        },
-                        0.0001f64
-                    )
-                    .unwrap());
+                assert!(Mat3x1::from(loc).equal(&Mat3x1::new([2f64, 1f64, 2f64])));
             }
             _ => panic!("unexpected result for plane point intersection"),
         }
@@ -32,14 +22,7 @@ fn test_intersect_plane_point() {
         let b = Plane::init(&[1f64, 1f64, 1f64], &[0f64, 1f64, 0f64]);
         match b.get_intersect(&a) {
             (true, Some(loc)) => {
-                assert!(loc
-                    .is_equal(
-                        &Mat3x1 {
-                            _val: [2f64, 1f64, 2f64]
-                        },
-                        0.0001f64
-                    )
-                    .unwrap());
+                assert!(Mat3x1::from(loc).equal(&Mat3x1::new([2f64, 1f64, 2f64])));
             }
             _ => panic!("unexpected result for plane point intersection"),
         }

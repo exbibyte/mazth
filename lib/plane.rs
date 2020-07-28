@@ -1,8 +1,8 @@
 use ndarray::prelude::*;
 
-use bound::IBound;
-use shape::{IShape, ShapeType};
-use vicinity::IVicinity;
+use bound::Bound;
+use shape::{Shape, ShapeType};
+use vicinity::Vicinity;
 
 use bound_aabb::AxisAlignedBBox;
 use mat::*;
@@ -22,7 +22,7 @@ impl Plane {
         Plane {
             _offset: Matrix1D::from(arr1(&[offset[0], offset[1], offset[2]])),
             _normal: Matrix1D::from(arr1(&[normal[0], normal[1], normal[2]])).normalize_l2(),
-            _bound: AxisAlignedBBox::init(
+            _bound: AxisAlignedBBox::new(
                 ShapeType::Plane,
                 &[&offset[0..3], &normal[0..3]].concat(),
             ),
@@ -31,7 +31,7 @@ impl Plane {
     }
 }
 
-impl IShape for Plane {
+impl Shape for Plane {
     fn get_shape_data(&self) -> Vec<f64> {
         vec![
             self._offset[0],
@@ -45,11 +45,11 @@ impl IShape for Plane {
     fn get_type(&self) -> ShapeType {
         ShapeType::Plane
     }
-    fn get_bound(&self) -> &dyn IBound {
+    fn get_bound(&self) -> &dyn Bound {
         &self._bound
     }
     // this shall test for intersection of bounding shapes first before procedding to test intersection using algorithms of higher complexity
-    fn get_intersect(&self, other: &dyn IShape) -> (bool, Option<Matrix1D>) {
+    fn get_intersect(&self, other: &dyn Shape) -> (bool, Option<Matrix1D>) {
         if !self.get_bound().intersect(other.get_bound()) {
             return (false, None);
         } else {
@@ -72,8 +72,8 @@ impl IShape for Plane {
                         other_shape_data[1],
                         other_shape_data[2],
                     ]));
-                    let k = self._normal.dot(&self._offset);
-                    let c = self._normal.dot(&b_off);
+                    let k = self._normal.inner(&self._offset);
+                    let c = self._normal.inner(&b_off);
                     let d = k - c;
                     if !self.within_vicinity(d, 0f64) {
                         return (false, None);
@@ -91,7 +91,7 @@ impl IShape for Plane {
     }
 }
 
-impl IVicinity<f64> for Plane {
+impl Vicinity<f64> for Plane {
     fn set_vicinity(&mut self, epsilon: f64) {
         self._vicinity = epsilon.abs();
     }

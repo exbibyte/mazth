@@ -1,8 +1,8 @@
 use ndarray::prelude::*;
 
-use bound::IBound;
-use shape::{IShape, ShapeType};
-use vicinity::IVicinity;
+use bound::Bound;
+use shape::{Shape, ShapeType};
+use vicinity::Vicinity;
 
 use bound_aabb::AxisAlignedBBox;
 use mat::*;
@@ -56,7 +56,7 @@ impl Line3 {
         Line3 {
             _a: Matrix1D::from(arr1(&[a[0], a[1], a[2]])),
             _b: Matrix1D::from(arr1(&[b[0], b[1], b[2]])),
-            _bound: AxisAlignedBBox::init(
+            _bound: AxisAlignedBBox::new(
                 ShapeType::Rect,
                 &[x_min, y_min, z_min, x_max, y_max, z_max],
             ),
@@ -65,7 +65,7 @@ impl Line3 {
     }
 }
 
-impl IShape for Line3 {
+impl Shape for Line3 {
     fn get_shape_data(&self) -> Vec<f64> {
         vec![
             self._a[0], self._a[1], self._a[2], self._b[0], self._b[1], self._b[2],
@@ -74,11 +74,11 @@ impl IShape for Line3 {
     fn get_type(&self) -> ShapeType {
         ShapeType::Line
     }
-    fn get_bound(&self) -> &dyn IBound {
+    fn get_bound(&self) -> &dyn Bound {
         &self._bound
     }
     // this shall test for intersection of bounding shapes first before procedding to test intersection using algorithms of higher complexity
-    fn get_intersect(&self, other: &dyn IShape) -> (bool, Option<Matrix1D>) {
+    fn get_intersect(&self, other: &dyn Shape) -> (bool, Option<Matrix1D>) {
         if !self.get_bound().intersect(other.get_bound()) {
             return (false, None);
         } else {
@@ -95,7 +95,7 @@ impl IShape for Line3 {
     }
 }
 
-impl IVicinity<f64> for Line3 {
+impl Vicinity<f64> for Line3 {
     fn set_vicinity(&mut self, epsilon: f64) {
         self._vicinity = epsilon.abs();
     }

@@ -3,11 +3,11 @@ pub enum BoundType {
     Sphere,
 }
 
-pub trait IBound {
+pub trait Bound {
     fn get_type(&self) -> BoundType;
-    fn intersect(&self, other: &dyn IBound) -> bool;
-    fn get_shortest_separation(&self, other: &dyn IBound) -> f64;
+    fn intersect(&self, other: &dyn Bound) -> bool;
+    fn get_shortest_separation(&self, other: &dyn Bound) -> f64;
     fn get_bound_data(&self) -> [f64; 32];
-    fn get_union(&mut self, bounds: &[&dyn IBound]);
+    fn get_union(&mut self, bounds: &[&dyn Bound]);
     fn get_centroid(&self) -> [f64; 3];
 }

@@ -51,7 +51,7 @@ impl DualQuat {
         DualQuat(rotate.normalize(), translate)
     }
     ///returns 4x4 homogeneous matrix
-    pub fn xform_rot(&self) -> Matrix {
+    pub fn xform_rot(&self) -> Mat4x4 {
         self.normalize().quat_rot().to_rotation_matrix()
     }
     ///returns vec4
@@ -61,7 +61,7 @@ impl DualQuat {
         Matrix1D::from(arr1(&[b.x(), b.y(), b.z(), 0.]))
     }
     ///returns 4x4 homogeneous matrix
-    pub fn xform(&self) -> Matrix {
+    pub fn xform(&self) -> Mat4x4 {
         let a = self.xform_tra();
         let mut b = self.xform_rot();
         b[[0, 3]] = a[0];

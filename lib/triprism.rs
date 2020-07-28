@@ -1,9 +1,9 @@
 use ndarray::prelude::*;
 
-use bound::IBound;
+use bound::Bound;
 ///triangular prism (5 faces: 2 triangles, 3 squares)
-use shape::{IShape, ShapeType};
-use vicinity::IVicinity;
+use shape::{Shape, ShapeType};
+use vicinity::Vicinity;
 
 use bound_aabb::AxisAlignedBBox;
 use mat::*;
@@ -108,7 +108,7 @@ impl TriPrism {
             _tri_base: base,
             _tri_base2: base2,
             _normal_height: h_offset,
-            _bound: AxisAlignedBBox::init(
+            _bound: AxisAlignedBBox::new(
                 ShapeType::Rect,
                 &[x_min, y_min, z_min, x_max, y_max, z_max],
             ),
@@ -117,7 +117,7 @@ impl TriPrism {
     }
 }
 
-impl IShape for TriPrism {
+impl Shape for TriPrism {
     fn get_shape_data(&self) -> Vec<f64> {
         vec![
             self._tri_base[0][0],
@@ -137,11 +137,11 @@ impl IShape for TriPrism {
     fn get_type(&self) -> ShapeType {
         ShapeType::TriPrism
     }
-    fn get_bound(&self) -> &dyn IBound {
+    fn get_bound(&self) -> &dyn Bound {
         &self._bound
     }
     // this shall test for intersection of bounding shapes first before procedding to test intersection using algorithms of higher complexity
-    fn get_intersect(&self, other: &dyn IShape) -> (bool, Option<Matrix1D>) {
+    fn get_intersect(&self, other: &dyn Shape) -> (bool, Option<Matrix1D>) {
         if !self.get_bound().intersect(other.get_bound()) {
             return (false, None);
         } else {
@@ -163,21 +163,21 @@ impl IShape for TriPrism {
                         (&self._tri_base2[0], n.clone()),
                         (
                             &self._tri_base[0],
-                            (&self._tri_base[1] - &self._tri_base[0]).cross_vec_1d(&n)
+                            (&self._tri_base[1] - &self._tri_base[0]).cross_vec_1d(&n),
                         ),
                         (
                             &self._tri_base[1],
-                            (&self._tri_base[2] - &self._tri_base[1]).cross_vec_1d(&n)
+                            (&self._tri_base[2] - &self._tri_base[1]).cross_vec_1d(&n),
                         ),
                         (
                             &self._tri_base[2],
-                            (&self._tri_base[0] - &self._tri_base[2]).cross_vec_1d(&n)
+                            (&self._tri_base[0] - &self._tri_base[2]).cross_vec_1d(&n),
                         ),
                     ];
 
                     let is_inside = tests
                         .iter()
-                        .all(|(vert, normal)| !((&other_point - *vert).dot(normal) > 0.));
+                        .all(|(vert, normal)| !((&other_point - *vert).inner(normal) > 0.));
 
                     if is_inside {
                         (true, Some(other_point))
@@ -207,24 +207,24 @@ impl IShape for TriPrism {
                         (&self._tri_base2[0], n.clone()),
                         (
                             &self._tri_base[0],
-                            (&self._tri_base[1] - &self._tri_base[0]).cross_vec_1d(&n)
+                            (&self._tri_base[1] - &self._tri_base[0]).cross_vec_1d(&n),
                         ),
                         (
                             &self._tri_base[1],
-                            (&self._tri_base[2] - &self._tri_base[1]).cross_vec_1d(&n)
+                            (&self._tri_base[2] - &self._tri_base[1]).cross_vec_1d(&n),
                         ),
                         (
                             &self._tri_base[2],
-                            (&self._tri_base[0] - &self._tri_base[2]).cross_vec_1d(&n)
+                            (&self._tri_base[0] - &self._tri_base[2]).cross_vec_1d(&n),
                         ),
                     ];
 
                     let a_is_inside = tests
                         .iter()
-                        .all(|(vert, normal)| !((&a - *vert).dot(normal) > 0.));
+                        .all(|(vert, normal)| !((&a - *vert).inner(normal) > 0.));
                     let b_is_inside = tests
                         .iter()
-                        .all(|(vert, normal)| !((&b - *vert).dot(normal) > 0.));
+                        .all(|(vert, normal)| !((&b - *vert).inner(normal) > 0.));
 
                     if a_is_inside {
                         return (true, Some(a));
@@ -297,9 +297,9 @@ impl IShape for TriPrism {
                             let mag2 = (collide_point - &a).norm_l2();
 
                             //one more check necesary for the candidate collision point
-                            let is_point_inside = tests
-                                .iter()
-                                .all(|(vert, normal)| !((collide_point - *vert).dot(normal) > 0.));
+                            let is_point_inside = tests.iter().all(|(vert, normal)| {
+                                !((collide_point - *vert).inner(normal) > 0.)
+                            });
 
                             if !is_point_inside || mag2 > mag {
                                 continue;
@@ -337,7 +337,7 @@ impl IShape for TriPrism {
 
             let furthest = points
                 .iter()
-                .map(|x| x.dot(v))
+                .map(|x| x.inner(v))
                 .enumerate()
                 .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
                 .unwrap();
@@ -351,7 +351,7 @@ impl IShape for TriPrism {
     }
 }
 
-impl IVicinity<f64> for TriPrism {
+impl Vicinity<f64> for TriPrism {
     fn set_vicinity(&mut self, epsilon: f64) {
         self._vicinity = epsilon.abs();
     }

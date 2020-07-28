@@ -1,73 +1,54 @@
-#[allow(unused_imports)]
-use std::cmp::Ordering;
-#[allow(unused_imports)]
-use std::ops::Div;
-
-use i_comparable::IComparableError;
-
 #[test]
 fn test_mat3x1() {
-    use mat::Mat3x1;
-
-    let v = Mat3x1 { _val: [10f64; 3] };
-    assert!(v.size().expect("size result invalid") == 3);
-
-    let v2 = Mat3x1 { _val: [2f64; 3] };
+    use mat::{Mat1x3, Mat3x1};
 
     {
-        let v3 = v.mul_elem(&v2).expect("mul result invalid");
-        assert!(v3
-            .is_equal(&Mat3x1 { _val: [20f64; 3] }, 0.0001f64)
-            .expect("Mat3x1 is_equal invalid"));
+        let v0 = Mat3x1::new([10f64; 3]);
+        let v1 = Mat3x1::new([2f64; 3]);
+        let v2 = &v0 * &v1;
+        assert!(v2.equal(&Mat3x1::new([20f64; 3])));
     }
     {
-        let v3 = v.div(&v2).expect("div result invalid");
-        assert!(v3
-            .is_equal(&Mat3x1 { _val: [5f64; 3] }, 0.0001f64)
-            .expect("Mat3x1 is_equal invalid"));
+        let v0 = Mat3x1::new([10f64; 3]);
+        let v1 = Mat3x1::new([2f64; 3]);
+        let v2 = &v0 + &v1;
+        assert!(v2.equal(&Mat3x1::new([12f64; 3])));
     }
     {
-        let v3 = v.plus(&v2).expect("plus result invalid");
-        assert!(v3
-            .is_equal(&Mat3x1 { _val: [12f64; 3] }, 0.0001f64)
-            .expect("Mat3x1 is_equal invalid"));
+        let v0 = Mat3x1::new([10f64; 3]);
+        let v1 = Mat3x1::new([2f64; 3]);
+        let v2 = &v0 - &v1;
+        assert!(v2.equal(&Mat3x1::new([8f64; 3])));
     }
     {
-        let v3 = v.minus(&v2).expect("plus result invalid");
-        assert!(v3
-            .is_equal(&Mat3x1 { _val: [8f64; 3] }, 0.0001f64)
-            .expect("Mat3x1 is_equal invalid"));
+        let v0 = Mat3x1::new([2f64; 3]);
+        assert!((v0.norm_l2() - (2f64 * 2f64 * 3f64).sqrt()).abs() < 1e-9);
     }
-
-    assert!(v2.magnitude().expect("magnitude invalid") == ((2f64 * 2f64) * 3f64).sqrt());
-
-    let v4 = v2.normalize().expect("normalize invalid");
-    assert!(v4
-        .is_equal(
-            &Mat3x1 {
-                _val: [2f64.div((2f64 * 2f64 * 3f64).sqrt()); 3]
-            },
-            0.0001f64
-        )
-        .expect("Mat3x1 is_equal invalid"));
-
-    let v5 = v2.scale(4f64).expect("scale invalid");
-    assert!(v5
-        .is_equal(&Mat3x1 { _val: [8f64; 3] }, 0.0001f64)
-        .expect("Mat3x1 is_equal invalid"));
-
-    let v6 = Mat3x1 {
-        _val: [5.0f64, 5.3f64, 7.7f64],
-    };
-    let v7 = Mat3x1 {
-        _val: [5.1f64, 5.4f64, 7.8f64],
-    };
-    assert!(v6
-        .is_equal(&v7, 0.1001f64)
-        .expect("Mat3x1 is_equal invalid"));
-    assert!(
-        v6.is_equal(&v7, 0.0999f64)
-            .expect("Mat3x1 is_equal invalid")
-            == false
-    );
+    {
+        let v0 = Mat3x1::new([2f64; 3]);
+        let v1 = v0.normalize_l2();
+        assert!(v1.equal(&Mat3x1::new([2f64 / (2f64 * 2f64 * 3f64).sqrt(); 3])));
+    }
+    {
+        let v0 = Mat3x1::new([2f64; 3]);
+        let v1 = &v0 * 4.;
+        assert!(v1.equal(&Mat3x1::new([8.; 3])));
+    }
+    {
+        let v0 = Mat3x1::new([2., 3., 4.]);
+        let v1 = Mat3x1::new([5., 6., 7.]);
+        let v2 = v0.cross(&v1);
+        assert!(v2.equal(&Mat3x1::new([-3., 6., -3.])));
+    }
+    {
+        let v0 = Mat3x1::new([2., 3., 4.]);
+        let v1 = v0.t();
+        assert!(v1.equal(&Mat1x3::new([2., 3., 4.])));
+    }
+    {
+        let v0 = Mat3x1::new([2., 3., 4.]);
+        let v1 = Mat3x1::new([5., 6., 7.]);
+        let v2 = v0.inner(&v1);
+        assert!((v2 - (10. + 18. + 28.)).abs() < 1e-9);
+    }
 }

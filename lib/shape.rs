@@ -1,6 +1,6 @@
-use bound::IBound;
+use bound::Bound;
 use mat::*;
-use vicinity::IVicinity;
+use vicinity::Vicinity;
 
 #[derive(Clone, Copy, Debug)]
 pub enum ShapeType {
@@ -19,12 +19,12 @@ pub enum ShapeType {
     Complex, //custom shapes
 }
 
-pub trait IShape: IVicinity<f64> {
+pub trait Shape: Vicinity<f64> {
     fn get_shape_data(&self) -> Vec<f64>;
     fn get_type(&self) -> ShapeType;
-    fn get_bound(&self) -> &dyn IBound;
+    fn get_bound(&self) -> &dyn Bound;
     //optionally returns a location of intersection of bounding shapes, preferrably closest of such locations
-    fn get_intersect(&self, other: &dyn IShape) -> (bool, Option<Matrix1D>);
+    fn get_intersect(&self, other: &dyn Shape) -> (bool, Option<Matrix1D>);
     //required for gjk intersection test
     fn get_support(&self, v: &Matrix1D) -> Option<Matrix1D>;
 }

@@ -1,14 +1,14 @@
 use std::cmp;
 use std::f64;
 
+use bound::Bound;
 use bound::BoundType;
-use bound::IBound;
 use shape::ShapeType;
 
 #[derive(Debug, Clone, Copy)]
 pub struct AxisAlignedBBox {
-    pub _bound_lower: [f64; 3],
-    pub _bound_upper: [f64; 3],
+    pub bound_lower: [f64; 3],
+    pub bound_upper: [f64; 3],
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -19,7 +19,7 @@ pub enum Axis {
 }
 
 impl AxisAlignedBBox {
-    pub fn init(shape_type: ShapeType, vals: &[f64]) -> AxisAlignedBBox {
+    pub fn new(shape_type: ShapeType, vals: &[f64]) -> AxisAlignedBBox {
         match shape_type {
             ShapeType::Ray => {
                 assert!(vals.len() == 6);
@@ -35,43 +35,43 @@ impl AxisAlignedBBox {
                     bounds[i] = b;
                 }
                 AxisAlignedBBox {
-                    _bound_lower: [bounds[0].0, bounds[1].0, bounds[2].0],
-                    _bound_upper: [bounds[0].1, bounds[1].1, bounds[2].1],
+                    bound_lower: [bounds[0].0, bounds[1].0, bounds[2].0],
+                    bound_upper: [bounds[0].1, bounds[1].1, bounds[2].1],
                 }
             }
             ShapeType::Point => {
                 assert!(vals.len() == 3);
                 AxisAlignedBBox {
-                    _bound_lower: [vals[0], vals[1], vals[2]],
-                    _bound_upper: [vals[0], vals[1], vals[2]],
+                    bound_lower: [vals[0], vals[1], vals[2]],
+                    bound_upper: [vals[0], vals[1], vals[2]],
                 }
             }
             ShapeType::Sphere => {
                 assert!(vals.len() == 4);
                 AxisAlignedBBox {
-                    _bound_lower: [vals[0] - vals[3], vals[1] - vals[3], vals[2] - vals[3]],
-                    _bound_upper: [vals[0] + vals[3], vals[1] + vals[3], vals[2] + vals[3]],
+                    bound_lower: [vals[0] - vals[3], vals[1] - vals[3], vals[2] - vals[3]],
+                    bound_upper: [vals[0] + vals[3], vals[1] + vals[3], vals[2] + vals[3]],
                 }
             }
             ShapeType::Plane => {
                 assert!(vals.len() == 6);
                 AxisAlignedBBox {
-                    _bound_lower: [f64::NEG_INFINITY; 3],
-                    _bound_upper: [f64::INFINITY; 3],
+                    bound_lower: [f64::NEG_INFINITY; 3],
+                    bound_upper: [f64::INFINITY; 3],
                 }
             }
             ShapeType::Box => {
                 assert!(vals.len() == 4);
                 AxisAlignedBBox {
-                    _bound_lower: [vals[0] - vals[3], vals[1] - vals[3], vals[2] - vals[3]],
-                    _bound_upper: [vals[0] + vals[3], vals[1] + vals[3], vals[2] + vals[3]],
+                    bound_lower: [vals[0] - vals[3], vals[1] - vals[3], vals[2] - vals[3]],
+                    bound_upper: [vals[0] + vals[3], vals[1] + vals[3], vals[2] + vals[3]],
                 }
             }
             ShapeType::Rect => {
                 assert!(vals.len() == 6);
                 AxisAlignedBBox {
-                    _bound_lower: [vals[0], vals[1], vals[2]],
-                    _bound_upper: [vals[3], vals[4], vals[5]],
+                    bound_lower: [vals[0], vals[1], vals[2]],
+                    bound_upper: [vals[3], vals[4], vals[5]],
                 }
             }
             ShapeType::Frustum => {
@@ -83,9 +83,9 @@ impl AxisAlignedBBox {
         }
     }
     pub fn get_longest_axis(&self) -> (Axis, f64) {
-        let dx = (Axis::X, self._bound_upper[0] - self._bound_lower[0]);
-        let dy = (Axis::Y, self._bound_upper[1] - self._bound_lower[1]);
-        let dz = (Axis::Z, self._bound_upper[2] - self._bound_lower[2]);
+        let dx = (Axis::X, self.bound_upper[0] - self.bound_lower[0]);
+        let dy = (Axis::Y, self.bound_upper[1] - self.bound_lower[1]);
+        let dz = (Axis::Z, self.bound_upper[2] - self.bound_lower[2]);
         let longest = [dx, dy, dz]
             .iter()
             .cloned()
@@ -103,11 +103,11 @@ impl AxisAlignedBBox {
     }
 }
 
-impl IBound for AxisAlignedBBox {
+impl Bound for AxisAlignedBBox {
     fn get_type(&self) -> BoundType {
         BoundType::AxisAlignBox
     }
-    fn intersect(&self, other: &dyn IBound) -> bool {
+    fn intersect(&self, other: &dyn Bound) -> bool {
         match other.get_type() {
             BoundType::AxisAlignBox => {
                 let a_bounds = self.get_bound_data();
@@ -130,22 +130,22 @@ impl IBound for AxisAlignedBBox {
             }
         }
     }
-    fn get_shortest_separation(&self, _other: &dyn IBound) -> f64 {
+    fn get_shortest_separation(&self, _other: &dyn Bound) -> f64 {
         unimplemented!();
     }
     fn get_bound_data(&self) -> [f64; 32] {
         let mut arr = [0f64; 32];
         for i in 0..3 {
-            arr[i] = self._bound_lower[i];
+            arr[i] = self.bound_lower[i];
         }
         for i in 0..3 {
-            arr[i + 3] = self._bound_upper[i];
+            arr[i + 3] = self.bound_upper[i];
         }
         arr
     }
-    fn get_union(&mut self, bounds: &[&dyn IBound]) {
-        self._bound_lower = [f64::INFINITY; 3];
-        self._bound_upper = [f64::NEG_INFINITY; 3];
+    fn get_union(&mut self, bounds: &[&dyn Bound]) {
+        self.bound_lower = [f64::INFINITY; 3];
+        self.bound_upper = [f64::NEG_INFINITY; 3];
         for i in bounds {
             match i.get_type() {
                 BoundType::AxisAlignBox => (),
@@ -157,8 +157,8 @@ impl IBound for AxisAlignedBBox {
             let b_lower = &b[0..3];
             let b_upper = &b[3..6];
             for j in 0..3 {
-                self._bound_lower[j] = self._bound_lower[j].min(b_lower[j]);
-                self._bound_upper[j] = self._bound_upper[j].max(b_upper[j]);
+                self.bound_lower[j] = self.bound_lower[j].min(b_lower[j]);
+                self.bound_upper[j] = self.bound_upper[j].max(b_upper[j]);
             }
         }
     }
@@ -184,8 +184,8 @@ impl IBound for AxisAlignedBBox {
 impl Default for AxisAlignedBBox {
     fn default() -> AxisAlignedBBox {
         AxisAlignedBBox {
-            _bound_lower: [f64::NEG_INFINITY; 3],
-            _bound_upper: [f64::INFINITY; 3],
+            bound_lower: [f64::NEG_INFINITY; 3],
+            bound_upper: [f64::INFINITY; 3],
         }
     }
 }

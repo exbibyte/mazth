@@ -1,6 +1,6 @@
-use i_comparable::IComparableError;
-use i_shape::IShape;
+use shape::Shape;
 
+use mat::*;
 use point::Point3;
 use ray::Ray3;
 
@@ -12,7 +12,7 @@ fn test_intersect_ray_point() {
         let b = Point3::init(&[25f64, 5f64, 5f64]);
         match a.get_intersect(&b) {
             (true, Some(loc)) => {
-                assert!(loc.is_equal(&b._ori, 0.0001f64).unwrap());
+                assert!(Mat3x1::from(loc).equal(&Mat3x1::from(b._ori)));
             }
             _ => panic!("unexpected result for ray point intersection"),
         }
@@ -43,7 +43,7 @@ fn test_intersect_ray_point() {
         let b = Point3::init(&[25f64, 5f64, 5f64]);
         match b.get_intersect(&a) {
             (true, Some(loc)) => {
-                assert!(loc.is_equal(&b._ori, 0.0001f64).unwrap());
+                assert!(Mat3x1::from(loc).equal(&Mat3x1::from(b._ori)));
             }
             _ => panic!("unexpected result for ray point intersection"),
         }

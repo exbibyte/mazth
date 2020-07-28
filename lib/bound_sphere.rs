@@ -1,7 +1,7 @@
 use std::f64;
 
+use i_bound::Bound;
 use i_bound::BoundType;
-use i_bound::IBound;
 use i_shape::ShapeType;
 
 #[derive(Debug, Clone)]
@@ -15,20 +15,20 @@ impl BoundSphere {
     }
 }
 
-impl IBound for BoundSphere {
+impl Bound for BoundSphere {
     fn get_type(&self) -> BoundType {
         BoundType::Sphere
     }
-    fn intersect(&self, _other: &dyn IBound) -> bool {
+    fn intersect(&self, _other: &dyn Bound) -> bool {
         unimplemented!();
     }
-    fn get_shortest_separation(&self, _other: &dyn IBound) -> f64 {
+    fn get_shortest_separation(&self, _other: &dyn Bound) -> f64 {
         unimplemented!();
     }
     fn get_bound_data(&self) -> [f64; 32] {
         unimplemented!();
     }
-    fn get_union(&mut self, _bounds: &[&dyn IBound]) {
+    fn get_union(&mut self, _bounds: &[&dyn Bound]) {
         unimplemented!();
     }
     fn get_centroid(&self) -> [f64; 3] {

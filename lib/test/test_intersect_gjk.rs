@@ -1,8 +1,7 @@
-use i_comparable::IComparableError;
-use i_shape::IShape;
-
 use intersect_gjk;
-use mat::Mat3x1;
+use mat::*;
+use ndarray::prelude::*;
+use shape::Shape;
 use sphere::Sphere;
 
 #[test]
@@ -15,24 +14,16 @@ fn test_intersect_gjk_shape_support() {
                 let v_y = 0.2f64 * (j as f64);
                 let v_z = 0.2f64 * (k as f64);
 
-                let v = Mat3x1 {
-                    _val: [v_x, v_y, v_z],
-                };
+                let v = Matrix1D::from(arr1(&[v_x, v_y, v_z]));
+
                 match a.get_support(&v) {
                     Some(o) => {
                         let l = (v_x * v_x + v_y * v_y + v_z * v_z).sqrt();
-                        assert!(o
-                            .is_equal(
-                                &Mat3x1 {
-                                    _val: [
-                                        -5f64 + v_x / l * 5.5f64,
-                                        2.5f64 + v_y / l * 5.5f64,
-                                        15f64 + v_z / l * 5.5f64
-                                    ]
-                                },
-                                0.0001f64
-                            )
-                            .expect("sphere support unsuccessful"));
+                        assert!(Mat3x1::from(o).equal(&Mat3x1::new([
+                            -5f64 + v_x / l * 5.5f64,
+                            2.5f64 + v_y / l * 5.5f64,
+                            15f64 + v_z / l * 5.5f64
+                        ])));
                     }
                     _ => {
                         if i != 0 || j != 0 || k != 0 {
@@ -67,7 +58,7 @@ fn test_intersect_gjk_query_intersect_positive() {
     }
     {
         let a = Sphere::init(&[0f64, -5f64, 0f64], 5f64);
-        let b = Sphere::init(&[0f64, 5f64, 0f64], 5f64);
+        let b = Sphere::init(&[0f64, 4.999f64, 0f64], 5f64);
         let ret = intersect_gjk::query_intersect(&a, &b);
         assert!(ret.expect("gjk return unexpected"));
     }

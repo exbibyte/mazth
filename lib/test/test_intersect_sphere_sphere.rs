@@ -1,9 +1,6 @@
-use i_comparable::IComparableError;
-use i_shape::IShape;
-
+use mat::*;
+use shape::Shape;
 use sphere::Sphere;
-
-use mat::Mat3x1;
 
 #[test]
 fn test_intersect_sphere_sphere() {
@@ -13,14 +10,7 @@ fn test_intersect_sphere_sphere() {
         let b = Sphere::init(&[20f64, 0f64, 0f64], 5f64);
         match a.get_intersect(&b) {
             (true, Some(loc)) => {
-                assert!(loc
-                    .is_equal(
-                        &Mat3x1 {
-                            _val: [15f64, 0f64, 0f64]
-                        },
-                        0.0001f64
-                    )
-                    .unwrap());
+                assert!(Mat3x1::from(loc).equal(&Mat3x1::new([15f64, 0f64, 0f64])));
             }
             _ => panic!("unexpected result for ray sphere intersection"),
         }
@@ -32,14 +22,7 @@ fn test_intersect_sphere_sphere() {
         match a.get_intersect(&b) {
             (true, Some(loc)) => {
                 println!("loc: {:?}", loc);
-                assert!(loc
-                    .is_equal(
-                        &Mat3x1 {
-                            _val: [11.5f64, 2f64, 0f64]
-                        },
-                        0.0001f64
-                    )
-                    .unwrap());
+                assert!(Mat3x1::from(loc).equal(&Mat3x1::new([11.5f64, 2f64, 0f64])));
             }
             _ => panic!("unexpected result for ray sphere intersection"),
         }

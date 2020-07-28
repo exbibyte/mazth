@@ -1,8 +1,8 @@
 use ndarray::prelude::*;
 
-use bound::IBound;
-use shape::{IShape, ShapeType};
-use vicinity::IVicinity;
+use bound::Bound;
+use shape::{Shape, ShapeType};
+use vicinity::Vicinity;
 
 use bound_aabb::AxisAlignedBBox;
 use mat::*;
@@ -21,24 +21,24 @@ impl Sphere {
         Sphere {
             _ori: Matrix1D::from(arr1(&[origin[0], origin[1], origin[2]])),
             _radius: r,
-            _bound: AxisAlignedBBox::init(ShapeType::Sphere, &[&origin[0..3], &[r]].concat()),
+            _bound: AxisAlignedBBox::new(ShapeType::Sphere, &[&origin[0..3], &[r]].concat()),
             _vicinity: 0.000001f64,
         }
     }
 }
 
-impl IShape for Sphere {
+impl Shape for Sphere {
     fn get_shape_data(&self) -> Vec<f64> {
         vec![self._ori[0], self._ori[1], self._ori[2], self._radius]
     }
     fn get_type(&self) -> ShapeType {
         ShapeType::Sphere
     }
-    fn get_bound(&self) -> &dyn IBound {
+    fn get_bound(&self) -> &dyn Bound {
         &self._bound
     }
     // this shall test for intersection of bounding shapes first before procedding to test intersection using algorithms of higher complexity
-    fn get_intersect(&self, other: &dyn IShape) -> (bool, Option<Matrix1D>) {
+    fn get_intersect(&self, other: &dyn Shape) -> (bool, Option<Matrix1D>) {
         if !self.get_bound().intersect(other.get_bound()) {
             return (false, None);
         } else {
@@ -103,8 +103,8 @@ impl IShape for Sphere {
                     //-t + dot( plane_normal, sphere_center ) = k
                     //t = dot( plane_normal, sphere_center ) - k
 
-                    let k = b_nor.dot(&b_off);
-                    let t = b_nor.dot(&self._ori) - k;
+                    let k = b_nor.inner(&b_off);
+                    let t = b_nor.inner(&self._ori) - k;
                     if t > self._radius {
                         return (false, None);
                     } else {
@@ -128,7 +128,7 @@ impl IShape for Sphere {
     }
 }
 
-impl IVicinity<f64> for Sphere {
+impl Vicinity<f64> for Sphere {
     fn set_vicinity(&mut self, epsilon: f64) {
         self._vicinity = epsilon.abs();
     }

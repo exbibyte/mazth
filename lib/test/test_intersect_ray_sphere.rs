@@ -1,10 +1,7 @@
-use i_comparable::IComparableError;
-use i_shape::IShape;
-
+use mat::*;
 use ray::Ray3;
+use shape::Shape;
 use sphere::Sphere;
-
-use mat::Mat3x1;
 
 #[test]
 fn test_intersect_ray_sphere() {
@@ -14,14 +11,8 @@ fn test_intersect_ray_sphere() {
         let b = Sphere::init(&[20f64, 0f64, 0f64], 5f64);
         match a.get_intersect(&b) {
             (true, Some(loc)) => {
-                assert!(loc
-                    .is_equal(
-                        &Mat3x1 {
-                            _val: [15f64, 0f64, 0f64]
-                        },
-                        0.0001f64
-                    )
-                    .unwrap());
+                dbg!(&loc);
+                assert!(Mat3x1::from(loc).equal(&Mat3x1::new([15f64, 0f64, 0f64])));
             }
             _ => panic!("unexpected result for ray sphere intersection"),
         }
@@ -43,14 +34,7 @@ fn test_intersect_ray_sphere() {
         let b = Sphere::init(&[20f64, 10f64, 10f64], 5f64);
         match a.get_intersect(&b) {
             (true, Some(loc)) => {
-                assert!(loc
-                    .is_equal(
-                        &Mat3x1 {
-                            _val: [25f64, 10f64, 10f64]
-                        },
-                        0.0001f64
-                    )
-                    .unwrap());
+                assert!(Mat3x1::from(loc).equal(&Mat3x1::new([25f64, 10f64, 10f64])));
             }
             _ => panic!("unexpected result for ray sphere intersection"),
         }
@@ -64,14 +48,7 @@ fn test_intersect_ray_sphere() {
             (true, Some(loc)) => {
                 let c = (25f64 / 3f64).sqrt();
                 println!("loc: {:?}", loc);
-                assert!(loc
-                    .is_equal(
-                        &Mat3x1 {
-                            _val: [20f64 + c, 0f64 + c, 0f64 + c]
-                        },
-                        0.0001f64
-                    )
-                    .unwrap());
+                assert!(Mat3x1::from(loc).equal(&Mat3x1::new([20f64 + c, 0f64 + c, 0f64 + c])));
             }
             _ => panic!("unexpected result for ray sphere intersection"),
         }

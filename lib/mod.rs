@@ -35,6 +35,5 @@ pub mod triprism;
 
 pub mod intersect_gjk;
 
-//todo
-// #[cfg(test)]
-// mod test;
+#[cfg(test)]
+mod test;

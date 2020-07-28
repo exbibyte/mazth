@@ -1,8 +1,8 @@
 use ndarray::prelude::*;
 
-use bound::IBound;
-use shape::{IShape, ShapeType};
-use vicinity::IVicinity;
+use bound::Bound;
+use shape::{Shape, ShapeType};
+use vicinity::Vicinity;
 
 use bound_aabb::AxisAlignedBBox;
 use mat::*;
@@ -21,24 +21,24 @@ impl RecBox {
         RecBox {
             _ori: Matrix1D::from(arr1(&[origin[0], origin[1], origin[2]])),
             _size: size, //half of the length of box edge
-            _bound: AxisAlignedBBox::init(ShapeType::Box, &[&origin[0..3], &[size]].concat()),
+            _bound: AxisAlignedBBox::new(ShapeType::Box, &[&origin[0..3], &[size]].concat()),
             _vicinity: 0.000001f64,
         }
     }
 }
 
-impl IShape for RecBox {
+impl Shape for RecBox {
     fn get_shape_data(&self) -> Vec<f64> {
         vec![self._ori[0], self._ori[1], self._ori[2], self._size]
     }
     fn get_type(&self) -> ShapeType {
         ShapeType::Box
     }
-    fn get_bound(&self) -> &dyn IBound {
+    fn get_bound(&self) -> &dyn Bound {
         &self._bound
     }
     // this shall test for intersection of bounding shapes first before procedding to test intersection using algorithms of higher complexity
-    fn get_intersect(&self, other: &dyn IShape) -> (bool, Option<Matrix1D>) {
+    fn get_intersect(&self, other: &dyn Shape) -> (bool, Option<Matrix1D>) {
         if !self.get_bound().intersect(other.get_bound()) {
             return (false, None);
         } else {
@@ -75,7 +75,7 @@ impl IShape for RecBox {
 
             let furthest = points
                 .iter()
-                .map(|x| x.dot(v))
+                .map(|x| x.inner(v))
                 .enumerate()
                 .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
                 .unwrap();
@@ -88,7 +88,7 @@ impl IShape for RecBox {
     }
 }
 
-impl IVicinity<f64> for RecBox {
+impl Vicinity<f64> for RecBox {
     fn set_vicinity(&mut self, epsilon: f64) {
         self._vicinity = epsilon.abs();
     }

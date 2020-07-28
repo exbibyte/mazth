@@ -3,9 +3,9 @@ use ndarray::prelude::*;
 //based on reference tutorial from http://www.dyn4j.org/2010/04/gjk-gilbert-johnson-keerthi/
 
 use mat::*;
-use shape::{IShape, ShapeType};
+use shape::{Shape, ShapeType};
 
-fn support(a: &dyn IShape, b: &dyn IShape, v: &Matrix1D) -> Option<Matrix1D> {
+fn support(a: &dyn Shape, b: &dyn Shape, v: &Matrix1D) -> Option<Matrix1D> {
     let p0 = match a.get_support(&v) {
         Some(o) => o,
         _ => return None,
@@ -21,7 +21,7 @@ fn support(a: &dyn IShape, b: &dyn IShape, v: &Matrix1D) -> Option<Matrix1D> {
 
 fn pass_minkowski_origin(last_vert: &Matrix1D, support: &Matrix1D) -> bool {
     // println!( "last vert dot product: {}", last_vert.dot( &support ).unwrap() );
-    last_vert.dot(support) > 0f64
+    last_vert.inner(support) > 0f64
 }
 
 fn contains_minkowski_origin(simplex: &mut Vec<Matrix1D>, support: &mut Matrix1D) -> bool {
@@ -35,12 +35,12 @@ fn contains_minkowski_origin(simplex: &mut Vec<Matrix1D>, support: &mut Matrix1D
         let ac = c - &a;
         let ab_normal = ac.cross_vec_1d(&ab).cross_vec_1d(&ab);
         let ac_normal = ab.cross_vec_1d(&ac).cross_vec_1d(&ac);
-        if ab_normal.dot(&ao) > 0f64 {
+        if ab_normal.inner(&ao) > 0f64 {
             //remove c and set new direction to ab_normal
             let simplex_new = vec![simplex[1].clone(), simplex[2].clone()];
             *simplex = simplex_new;
             *support = ab_normal.clone();
-        } else if ac_normal.dot(&ao) > 0f64 {
+        } else if ac_normal.inner(&ao) > 0f64 {
             //remove b and set new direction to ac_normal
             let simplex_new = vec![simplex[0].clone(), simplex[2].clone()];
             *simplex = simplex_new.clone();
@@ -64,7 +64,7 @@ fn contains_minkowski_origin(simplex: &mut Vec<Matrix1D>, support: &mut Matrix1D
     false
 }
 
-pub fn query_intersect(a: &dyn IShape, b: &dyn IShape) -> Option<bool> {
+pub fn query_intersect(a: &dyn Shape, b: &dyn Shape) -> Option<bool> {
     match (a.get_type(), b.get_type()) {
         (ShapeType::Sphere, ShapeType::Sphere) => {}
         //todo

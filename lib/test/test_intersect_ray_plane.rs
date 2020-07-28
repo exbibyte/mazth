@@ -1,10 +1,7 @@
-use i_comparable::IComparableError;
-use i_shape::IShape;
-
+use mat::*;
 use plane::Plane;
 use ray::Ray3;
-
-use mat::Mat3x1;
+use shape::Shape;
 
 #[test]
 fn test_intersect_ray_plane() {
@@ -14,14 +11,7 @@ fn test_intersect_ray_plane() {
         let b = Plane::init(&[1f64, 1f64, 1f64], &[0f64, 1f64, 0f64]);
         match a.get_intersect(&b) {
             (true, Some(loc)) => {
-                assert!(loc
-                    .is_equal(
-                        &Mat3x1 {
-                            _val: [1f64, 1f64, 1f64]
-                        },
-                        0.0001f64
-                    )
-                    .unwrap());
+                assert!(Mat3x1::from(loc).equal(&Mat3x1::new([1f64, 1f64, 1f64])));
             }
             _ => panic!("unexpected result for ray sphere intersection"),
         }
@@ -53,7 +43,7 @@ fn test_intersect_ray_plane() {
         let b = Plane::init(&[1f64, 1f64, 1f64], &[0f64, 1f64, 0f64]);
         match a.get_intersect(&b) {
             (true, Some(loc)) => {
-                assert!(loc.is_equal(&a._ori, 0.0001f64).unwrap());
+                assert!(Mat3x1::from(loc).equal(&Mat3x1::from(a._ori)));
             }
             _ => panic!("unexpected result for ray sphere intersection"),
         }
