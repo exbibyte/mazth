@@ -158,6 +158,9 @@ impl Mat2x1 {
     pub fn t(self) -> Mat1x2 {
         Mat1x2(self.0)
     }
+    pub fn sum(&self) -> f64 {
+        self[0] + self[1]
+    }
 }
 
 impl Index<usize> for Mat1x2 {
@@ -264,6 +267,9 @@ impl Mat1x2 {
     }
     pub fn t(self) -> Mat2x1 {
         Mat2x1(self.0)
+    }
+    pub fn sum(&self) -> f64 {
+        self[0] + self[1]
     }
 }
 
@@ -403,8 +409,11 @@ impl Mat3x1 {
         let m = self.norm_l2();
         Mat3x1([self.0[0] / m, self.0[1] / m, self.0[2] / m])
     }
-    pub fn t(self) -> Mat1x3 {
+    pub fn t(&self) -> Mat1x3 {
         Mat1x3(self.0)
+    }
+    pub fn sum(&self) -> f64 {
+        self[0] + self[1] + self[2]
     }
     pub fn equal(&self, b: &Mat3x1) -> bool {
         for i in 0..3 {
@@ -563,6 +572,9 @@ impl Mat1x3 {
     }
     pub fn t(&self) -> Mat3x1 {
         Mat3x1(self.0)
+    }
+    pub fn sum(&self) -> f64 {
+        self[0] + self[1] + self[2]
     }
     pub fn equal(&self, other: &Self) -> bool {
         self.0[0] == other.0[0] && self.0[1] == other.0[1] && self.0[2] == other.0[2]
@@ -777,6 +789,9 @@ impl Mat4x1 {
     }
     pub fn t(self) -> Mat1x4 {
         Mat1x4(self.0)
+    }
+    pub fn sum(&self) -> f64 {
+        self[0] + self[1] + self[2] + self[3]
     }
     pub fn equal(&self, b: &Mat4x1) -> bool {
         for i in 0..4 {
@@ -993,6 +1008,9 @@ impl Mat1x4 {
     }
     pub fn t(self) -> Mat4x1 {
         Mat4x1(self.0)
+    }
+    pub fn sum(&self) -> f64 {
+        self[0] + self[1] + self[2] + self[3]
     }
     pub fn equal(&self, b: &Mat1x4) -> bool {
         for i in 0..4 {
@@ -1283,7 +1301,6 @@ impl Mat3x3 {
         copy
     }
     pub fn inverse(&self) -> Result<Mat3x3, &'static str> {
-        
         use ndarray_linalg::solve::Inverse;
 
         let a = arr2(&[
@@ -1306,6 +1323,9 @@ impl Mat3x3 {
             ])),
             Err(_) => Err("inverse error"),
         }
+    }
+    pub fn sum(&self) -> f64 {
+        self.0.iter().sum()
     }
     pub fn equal(&self, b: &Mat3x3) -> bool {
         for i in 0..9 {
@@ -1726,8 +1746,11 @@ impl Mat4x4 {
     }
     ///normalizes using homogeneous system
     pub fn normalize_h(&self) -> Mat4x4 {
-        let v = self[[3,3]];
+        let v = self[[3, 3]];
         self / v
+    }
+    pub fn sum(&self) -> f64 {
+        self.0.iter().sum()
     }
     pub fn equal(&self, b: &Mat4x4) -> bool {
         for i in 0..16 {
@@ -1738,20 +1761,36 @@ impl Mat4x4 {
         true
     }
 }
-    
+
 impl From<Mat3x3> for Arrayf32_9_r {
     fn from(i: Mat3x3) -> Arrayf32_9_r {
-        Arrayf32_9_r([i.0[0] as f32, i.0[1] as f32, i.0[2] as f32,
-                       i.0[3] as f32, i.0[4] as f32, i.0[5] as f32,
-                       i.0[6] as f32, i.0[7] as f32, i.0[8] as f32])
+        Arrayf32_9_r([
+            i.0[0] as f32,
+            i.0[1] as f32,
+            i.0[2] as f32,
+            i.0[3] as f32,
+            i.0[4] as f32,
+            i.0[5] as f32,
+            i.0[6] as f32,
+            i.0[7] as f32,
+            i.0[8] as f32,
+        ])
     }
 }
 
 impl From<Mat3x3> for Arrayf32_9_c {
     fn from(i: Mat3x3) -> Arrayf32_9_c {
-        Arrayf32_9_c([i.0[0] as f32, i.0[3] as f32, i.0[6] as f32,
-                       i.0[1] as f32, i.0[4] as f32, i.0[7] as f32,
-                       i.0[2] as f32, i.0[5] as f32, i.0[8] as f32])
+        Arrayf32_9_c([
+            i.0[0] as f32,
+            i.0[3] as f32,
+            i.0[6] as f32,
+            i.0[1] as f32,
+            i.0[4] as f32,
+            i.0[7] as f32,
+            i.0[2] as f32,
+            i.0[5] as f32,
+            i.0[8] as f32,
+        ])
     }
 }
 
@@ -1786,20 +1825,46 @@ impl Into<Result<Mat3x3, &'static str>> for Matrix {
 
 impl From<Mat4x4> for Arrayf32_16_r {
     fn from(i: Mat4x4) -> Arrayf32_16_r {
-        Arrayf32_16_r([i.0[0] as f32, i.0[1] as f32, i.0[2] as f32, i.0[3] as f32,
-                       i.0[4] as f32, i.0[5] as f32, i.0[6] as f32, i.0[7] as f32,
-                       i.0[8] as f32, i.0[9] as f32, i.0[10] as f32, i.0[11] as f32,
-                       i.0[12] as f32, i.0[13] as f32, i.0[14] as f32, i.0[15] as f32,
+        Arrayf32_16_r([
+            i.0[0] as f32,
+            i.0[1] as f32,
+            i.0[2] as f32,
+            i.0[3] as f32,
+            i.0[4] as f32,
+            i.0[5] as f32,
+            i.0[6] as f32,
+            i.0[7] as f32,
+            i.0[8] as f32,
+            i.0[9] as f32,
+            i.0[10] as f32,
+            i.0[11] as f32,
+            i.0[12] as f32,
+            i.0[13] as f32,
+            i.0[14] as f32,
+            i.0[15] as f32,
         ])
     }
 }
 
 impl From<Mat4x4> for Arrayf32_16_c {
     fn from(i: Mat4x4) -> Arrayf32_16_c {
-        Arrayf32_16_c([i.0[0] as f32, i.0[4] as f32, i.0[8] as f32, i.0[12] as f32,
-                       i.0[1] as f32, i.0[5] as f32, i.0[9] as f32, i.0[13] as f32,
-                       i.0[2] as f32, i.0[6] as f32, i.0[10] as f32, i.0[14] as f32,
-                       i.0[3] as f32, i.0[7] as f32, i.0[11] as f32, i.0[15] as f32,
+        Arrayf32_16_c([
+            i.0[0] as f32,
+            i.0[4] as f32,
+            i.0[8] as f32,
+            i.0[12] as f32,
+            i.0[1] as f32,
+            i.0[5] as f32,
+            i.0[9] as f32,
+            i.0[13] as f32,
+            i.0[2] as f32,
+            i.0[6] as f32,
+            i.0[10] as f32,
+            i.0[14] as f32,
+            i.0[3] as f32,
+            i.0[7] as f32,
+            i.0[11] as f32,
+            i.0[15] as f32,
         ])
     }
 }
