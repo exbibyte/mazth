@@ -105,7 +105,7 @@ impl Quat {
         ])
     }
     ///expects a proper rotation matrix as input
-    pub fn init_from_rotation_matrix(rot: &Mat3x3) -> Quat {
+    pub fn init_from_rotation_matrix(rot: Mat3x3) -> Quat {
         let t = rot.trace();
         if t > 0. {
             let s = 0.5 / (t + 1.).sqrt();
