@@ -104,6 +104,47 @@ impl Quat {
             1.,
         ])
     }
+    ///expects a proper rotation matrix as input
+    pub fn init_from_rotation_matrix(rot: &Mat3x3) -> Quat {
+        let t = rot.trace();
+        if t > 0. {
+            let s = 0.5 / (t + 1.).sqrt();
+
+            Quat::init_from_vals(
+                (rot[[2, 1]] - rot[[1, 2]]) * s,
+                (rot[[0, 2]] - rot[[2, 0]]) * s,
+                (rot[[1, 0]] - rot[[0, 1]]) * s,
+                1. / s * 0.25,
+            )
+        } else if rot[[0, 0]] > rot[[1, 1]] && rot[[0, 0]] > rot[[2, 2]] {
+            let s = 2. * (1. + rot[[0, 0]] - rot[[1, 1]] - rot[[2, 2]]).sqrt();
+
+            Quat::init_from_vals(
+                0.25 * s,
+                (rot[[0, 1]] + rot[[1, 0]]) / s,
+                (rot[[0, 2]] + rot[[2, 0]]) / s,
+                (rot[[2, 1]] - rot[[1, 2]]) / s,
+            )
+        } else if rot[[1, 1]] > rot[[2, 2]] {
+            let s = 2. * (1. + rot[[1, 1]] - rot[[0, 0]] - rot[[2, 2]]).sqrt();
+
+            Quat::init_from_vals(
+                (rot[[0, 1]] - rot[[1, 0]]) / s,
+                0.25 * s,
+                (rot[[1, 2]] - rot[[2, 1]]) / s,
+                (rot[[0, 2]] - rot[[2, 0]]) / s,
+            )
+        } else {
+            let s = 2. * (1. + rot[[2, 2]] - rot[[0, 0]] - rot[[1, 1]]).sqrt();
+
+            Quat::init_from_vals(
+                (rot[[0, 2]] - rot[[2, 0]]) / s,
+                (rot[[1, 2]] - rot[[2, 1]]) / s,
+                0.25 * s,
+                (rot[[1, 0]] - rot[[0, 1]]) / s,
+            )
+        }
+    }
     #[allow(dead_code)]
     pub fn to_rotation_matrix(&self) -> Mat4x4 {
         //assumes unit quaternion

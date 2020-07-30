@@ -55,10 +55,10 @@ impl DualQuat {
         self.normalize().quat_rot().to_rotation_matrix()
     }
     ///returns vec4
-    pub fn xform_tra(&self) -> Matrix1D {
+    pub fn xform_tra(&self) -> Mat4x1 {
         let a = self.normalize();
         let b = &(2. * a.quat_tra()) * &a.quat_rot().conjugate();
-        Matrix1D::from(arr1(&[b.x(), b.y(), b.z(), 0.]))
+        Mat4x1::new([b.x(), b.y(), b.z(), 1.])
     }
     ///returns 4x4 homogeneous matrix
     pub fn xform(&self) -> Mat4x4 {
