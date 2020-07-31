@@ -1762,6 +1762,29 @@ impl Mat4x4 {
     }
 }
 
+impl From<Mat3x3> for Mat4x4 {
+    fn from(i: Mat3x3) -> Mat4x4 {
+        Mat4x4::new_r([
+            i[[0, 0]],
+            i[[0, 1]],
+            i[[0, 2]],
+            0.,
+            i[[1, 0]],
+            i[[1, 1]],
+            i[[1, 2]],
+            0.,
+            i[[2, 0]],
+            i[[2, 1]],
+            i[[2, 2]],
+            0.,
+            0.,
+            0.,
+            0.,
+            0.,
+        ])
+    }
+}
+
 impl From<Mat3x3> for Arrayf32_9_r {
     fn from(i: Mat3x3) -> Arrayf32_9_r {
         Arrayf32_9_r([

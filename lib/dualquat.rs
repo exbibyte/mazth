@@ -57,7 +57,7 @@ impl DualQuat {
     ///returns vec4
     pub fn xform_tra(&self) -> Mat4x1 {
         let a = self.normalize();
-        let b = &(2. * a.quat_tra()) * &a.quat_rot().conjugate();
+        let b = 2. * &(a.quat_tra() * &a.quat_rot().conjugate());
         Mat4x1::new([b.x(), b.y(), b.z(), 1.])
     }
     ///returns 4x4 homogeneous matrix
@@ -89,6 +89,11 @@ impl DualQuat {
     }
     pub fn conjugate(&self) -> DualQuat {
         DualQuat::new(self.quat_rot().conjugate(), self.quat_tra().conjugate())
+    }
+    pub fn rotate_point(&self, p: Mat3x1) -> Mat3x1 {
+        let t =
+            &(self * &DualQuat::new_from_tra(Quat::init_from_translation(p))) * &self.conjugate();
+        t.xform_tra().vec3()
     }
     pub fn sclerp(&self, other: &Self, t: f64) -> DualQuat {
         self * (&(&self.conjugate() * other).pow(t))
@@ -188,6 +193,7 @@ impl DualQuat {
     }
 }
 
+///useful for transforms, eg: p_new = q*p*q', q' := transform, q' := conjugate, p := vector point in dualquat
 impl Mul for &DualQuat {
     type Output = DualQuat;
     fn mul(self, rhs: &DualQuat) -> DualQuat {
