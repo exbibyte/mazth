@@ -1354,13 +1354,13 @@ impl Mat3x3 {
 impl Index<[usize; 2]> for Mat4x4 {
     type Output = f64;
     fn index(&self, idx: [usize; 2]) -> &Self::Output {
-        &self.0[idx[0] * 3 + idx[1]]
+        &self.0[idx[0] * 4 + idx[1]]
     }
 }
 
 impl IndexMut<[usize; 2]> for Mat4x4 {
     fn index_mut(&mut self, idx: [usize; 2]) -> &mut Self::Output {
-        &mut self.0[idx[0] * 3 + idx[1]]
+        &mut self.0[idx[0] * 4 + idx[1]]
     }
 }
 
