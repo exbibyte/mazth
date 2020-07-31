@@ -1742,7 +1742,7 @@ impl Mat4x4 {
     }
     ///extract 3x1 translation
     pub fn sub_xlate(&self) -> Mat3x1 {
-        Mat3x1::new([self.0[2], self.0[5], self.0[8]])
+        Mat3x1::new([self.0[3], self.0[7], self.0[11]])
     }
     ///normalizes using homogeneous system
     pub fn normalize_h(&self) -> Mat4x4 {
