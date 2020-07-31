@@ -1244,7 +1244,7 @@ impl Sub<&Mat3x3> for f64 {
 
 impl fmt::Display for Mat3x3 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "[ {} {} {}\n  {} {} {}\n  {} {} {}\n {} {} {} ]",
+        write!(f, "[ {} {} {} {} {} {} {} {} {} {} {} {} ]",
                self[[0,0]], self[[0,1]], self[[0,2]],
                self[[1,0]], self[[1,1]], self[[1,2]],
                self[[2,0]], self[[2,1]], self[[2,2]],
@@ -1643,7 +1643,7 @@ impl Sub<&Mat4x4> for f64 {
 
 impl fmt::Display for Mat4x4 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "[ {} {} {} {}\n  {} {} {} {}\n  {} {} {} {}\n {} {} {} {} ]",
+        write!(f, "[ {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} ]",
                self[[0,0]], self[[0,1]], self[[0,2]], self[[0,3]],
                self[[1,0]], self[[1,1]], self[[1,2]], self[[1,3]],
                self[[2,0]], self[[2,1]], self[[2,2]], self[[2,3]],
@@ -1665,7 +1665,10 @@ impl Mat4x4 {
     }
     pub fn eye() -> Mat4x4 {
         Mat4x4([
-            1., 0., 0., 0., 0., 1., 0., 0., 0., 0., 1., 0., 0., 0., 0., 1.,
+            1., 0., 0., 0.,
+            0., 1., 0., 0.,
+            0., 0., 1., 0.,
+            0., 0., 0., 1.,
         ])
     }
     pub fn trace(&self) -> f64 {
