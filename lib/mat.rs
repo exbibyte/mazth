@@ -1,6 +1,8 @@
 #[allow(unused_imports)]
 use std::ops::{Add, Deref, Div, Mul, Sub};
 
+use std::fmt;
+
 use ndarray::prelude::*;
 use ndarray::Array;
 // use ndarray_linalg;
@@ -1239,6 +1241,18 @@ impl Sub<&Mat3x3> for f64 {
         ])
     }
 }
+
+impl fmt::Display for Mat3x3 {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "[ {} {} {}\n  {} {} {}\n  {} {} {}\n {} {} {} ]",
+               self[[0,0]], self[[0,1]], self[[0,2]],
+               self[[1,0]], self[[1,1]], self[[1,2]],
+               self[[2,0]], self[[2,1]], self[[2,2]],
+               self[[3,0]], self[[3,1]], self[[3,2]])
+    }
+}
+
+
 impl Mat3x3 {
     ///expects row major input
     pub fn new_r(arr: [f64; 9]) -> Mat3x3 {
@@ -1626,6 +1640,17 @@ impl Sub<&Mat4x4> for f64 {
         ])
     }
 }
+
+impl fmt::Display for Mat4x4 {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "[ {} {} {} {}\n  {} {} {} {}\n  {} {} {} {}\n {} {} {} {} ]",
+               self[[0,0]], self[[0,1]], self[[0,2]], self[[0,3]],
+               self[[1,0]], self[[1,1]], self[[1,2]], self[[1,3]],
+               self[[2,0]], self[[2,1]], self[[2,2]], self[[2,3]],
+               self[[3,0]], self[[3,1]], self[[3,2]], self[[3,3]])
+    }
+}
+
 impl Mat4x4 {
     ///expects row major input
     pub fn new_r(arr: [f64; 16]) -> Mat4x4 {
