@@ -1244,14 +1244,24 @@ impl Sub<&Mat3x3> for f64 {
 
 impl fmt::Display for Mat3x3 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "[ {} {} {} {} {} {} {} {} {} {} {} {} ]",
-               self[[0,0]], self[[0,1]], self[[0,2]],
-               self[[1,0]], self[[1,1]], self[[1,2]],
-               self[[2,0]], self[[2,1]], self[[2,2]],
-               self[[3,0]], self[[3,1]], self[[3,2]])
+        write!(
+            f,
+            "[{} {} {} {} {} {} {} {} {} {} {} {}]",
+            self[[0, 0]],
+            self[[0, 1]],
+            self[[0, 2]],
+            self[[1, 0]],
+            self[[1, 1]],
+            self[[1, 2]],
+            self[[2, 0]],
+            self[[2, 1]],
+            self[[2, 2]],
+            self[[3, 0]],
+            self[[3, 1]],
+            self[[3, 2]]
+        )
     }
 }
-
 
 impl Mat3x3 {
     ///expects row major input
@@ -1266,6 +1276,9 @@ impl Mat3x3 {
     }
     pub fn eye() -> Mat3x3 {
         Mat3x3([1., 0., 0., 0., 1., 0., 0., 0., 1.])
+    }
+    pub fn scale(i: [f64; 3]) -> Mat3x3 {
+        Mat3x3([i[0], 0., 0., 0., i[1], 0., 0., 0., i[2]])
     }
     pub fn trace(&self) -> f64 {
         self.0[0] + self.0[4] + self.0[8]
@@ -1314,7 +1327,7 @@ impl Mat3x3 {
         }
         copy
     }
-    pub fn inverse(&self) -> Result<Mat3x3, &'static str> {
+    pub fn inv(&self) -> Result<Mat3x3, &'static str> {
         use ndarray_linalg::solve::Inverse;
 
         let a = arr2(&[
@@ -1643,11 +1656,26 @@ impl Sub<&Mat4x4> for f64 {
 
 impl fmt::Display for Mat4x4 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "[ {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} ]",
-               self[[0,0]], self[[0,1]], self[[0,2]], self[[0,3]],
-               self[[1,0]], self[[1,1]], self[[1,2]], self[[1,3]],
-               self[[2,0]], self[[2,1]], self[[2,2]], self[[2,3]],
-               self[[3,0]], self[[3,1]], self[[3,2]], self[[3,3]])
+        write!(
+            f,
+            "[{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}]",
+            self[[0, 0]],
+            self[[0, 1]],
+            self[[0, 2]],
+            self[[0, 3]],
+            self[[1, 0]],
+            self[[1, 1]],
+            self[[1, 2]],
+            self[[1, 3]],
+            self[[2, 0]],
+            self[[2, 1]],
+            self[[2, 2]],
+            self[[2, 3]],
+            self[[3, 0]],
+            self[[3, 1]],
+            self[[3, 2]],
+            self[[3, 3]]
+        )
     }
 }
 
@@ -1665,19 +1693,13 @@ impl Mat4x4 {
     }
     pub fn eye() -> Mat4x4 {
         Mat4x4([
-            1., 0., 0., 0.,
-            0., 1., 0., 0.,
-            0., 0., 1., 0.,
-            0., 0., 0., 1.,
+            1., 0., 0., 0., 0., 1., 0., 0., 0., 0., 1., 0., 0., 0., 0., 1.,
         ])
     }
-    pub fn scale(i: [f64;3]) -> Mat4x4 {
+    pub fn scale(i: [f64; 3]) -> Mat4x4 {
         Mat4x4([
-            i[0], 0., 0., 0.,
-            0., i[1], 0., 0.,
-            0., 0., i[2], 0.,
-            0., 0., 0., 1.,
-        ])        
+            i[0], 0., 0., 0., 0., i[1], 0., 0., 0., 0., i[2], 0., 0., 0., 0., 1.,
+        ])
     }
     pub fn trace(&self) -> f64 {
         self.0[0] + self.0[4] + self.0[8] + self.0[12]
@@ -1737,7 +1759,7 @@ impl Mat4x4 {
         }
         copy
     }
-    pub fn inverse(&self) -> Result<Mat4x4, &'static str> {
+    pub fn inv(&self) -> Result<Mat4x4, &'static str> {
         use ndarray_linalg::solve::Inverse;
 
         let a = arr2(&[
@@ -1795,6 +1817,18 @@ impl Mat4x4 {
             }
         }
         true
+    }
+}
+
+impl From<Mat3x1> for Mat3x3 {
+    fn from(i: Mat3x1) -> Mat3x3 {
+        Mat3x3::scale(i.0)
+    }
+}
+
+impl From<Mat3x1> for Mat4x4 {
+    fn from(i: Mat3x1) -> Mat4x4 {
+        Mat4x4::scale(i.0)
     }
 }
 

@@ -3,17 +3,17 @@ use crate::{dualquat::*, mat::*, quat::*};
 pub fn perspective(fov: f32, aspect: f32, near: f32, far: f32) -> Mat4x4 {
     let half_tan = (fov as f32 * std::f32::consts::PI / 360.0f32).tan();
     let mut m = Mat4x4::default();
-    m[[0,0]] =  1.0/(aspect * half_tan) as f64;
-    m[[1,1]] = 1./half_tan as f64;
-    m[[2,2]] = ( (far+near)/(near-far) ) as f64;
-    m[[3,2]] = -1.;
-    m[[2,3]] = ( (far * near)/(near-far) ) as f64;
+    m[[0, 0]] = 1.0 / (aspect * half_tan) as f64;
+    m[[1, 1]] = 1. / half_tan as f64;
+    m[[2, 2]] = ((far + near) / (near - far)) as f64;
+    m[[3, 2]] = -1.;
+    m[[2, 3]] = ((far * near) / (near - far)) as f64;
     m
 }
 
 ///computes a view matrix by doing an inversion of camera transform to bring world frame to camera frame
 pub fn look_at(loc: &Mat3x1, target: &Mat3x1, up: &Mat3x1) -> Mat4x4 {
-    let z = (loc-target).normalize_l2();
+    let z = (loc - target).normalize_l2();
     let x = up.normalize_l2().cross(&z).normalize_l2();
     let y = z.cross(&x).normalize_l2();
     //inverse of rotation = tranpose
@@ -39,7 +39,7 @@ pub fn look_at(loc: &Mat3x1, target: &Mat3x1, up: &Mat3x1) -> Mat4x4 {
 }
 
 pub fn look_at_non_invert(loc: &Mat3x1, target: &Mat3x1, up: &Mat3x1) -> Mat4x4 {
-    let z = (target-loc).normalize_l2();
+    let z = (target - loc).normalize_l2();
     let x = up.normalize_l2().cross(&z);
     let y = z.cross(&x);
     Mat4x4::new_r([

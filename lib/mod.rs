@@ -18,16 +18,16 @@ pub mod quat;
 
 pub mod bound;
 pub mod bound_aabb;
-pub mod shape;
-pub mod vicinity;
+pub mod intersect_gjk;
 pub mod line;
 pub mod plane;
 pub mod point;
 pub mod ray;
 pub mod rbox;
+pub mod shape;
 pub mod sphere;
 pub mod triprism;
-pub mod intersect_gjk;
+pub mod vicinity;
 
 pub mod util_graphics;
 
