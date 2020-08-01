@@ -7,7 +7,7 @@ pub fn perspective(fov: f32, aspect: f32, near: f32, far: f32) -> Mat4x4 {
     m[[1,1]] = 1./half_tan as f64;
     m[[2,2]] = ( (far+near)/(near-far) ) as f64;
     m[[3,2]] = -1.;
-    m[[2,3]] = ( (2. * far * near)/(near-far) ) as f64;
+    m[[2,3]] = ( (far * near)/(near-far) ) as f64;
     m
 }
 
