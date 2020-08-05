@@ -48,7 +48,9 @@ impl DualQuat {
     }
     #[allow(dead_code)]
     pub fn new(rotate: Quat, translate: Quat) -> DualQuat {
-        DualQuat(rotate.normalize(), translate)
+        let r = DualQuat::new_from_rot(rotate);
+        let t = DualQuat::new_from_tra(translate);
+        (&t * &r)
     }
     ///returns 4x4 homogeneous matrix
     pub fn xform_rot(&self) -> Mat4x4 {
@@ -57,6 +59,7 @@ impl DualQuat {
     ///returns vec4
     pub fn xform_tra(&self) -> Mat4x1 {
         let a = self.normalize();
+        // let b = 2. * &(&a.quat_rot().conjugate() * a.quat_tra());
         let b = 2. * &(a.quat_tra() * &a.quat_rot().conjugate());
         Mat4x1::new([b.x(), b.y(), b.z(), 1.])
     }
@@ -74,7 +77,7 @@ impl DualQuat {
         assert!(l > EPS);
         let a = self.quat_rot().scale(1. / l);
         let b = self.quat_tra().scale(1. / l);
-        DualQuat::new(a, b)
+        DualQuat(a, b)
     }
     pub fn normalized(&mut self) {
         let (a, b) = <(Quat, Quat)>::from(self.normalize());
@@ -84,11 +87,10 @@ impl DualQuat {
     pub fn norm(&self) -> DualScalar {
         DualScalar::new(
             self.quat_rot().norm(),
-            self.quat_rot().dot(self.quat_tra()) / self.quat_rot().norm(),
-        )
+            self.quat_rot().dot(self.quat_tra()) / self.quat_rot().norm())
     }
     pub fn conjugate(&self) -> DualQuat {
-        DualQuat::new(self.quat_rot().conjugate(), self.quat_tra().conjugate())
+        DualQuat(self.quat_rot().conjugate(), self.quat_tra().conjugate())
     }
     pub fn rotate_point(&self, p: Mat3x1) -> Mat3x1 {
         let t =
@@ -197,7 +199,7 @@ impl DualQuat {
 impl Mul for &DualQuat {
     type Output = DualQuat;
     fn mul(self, rhs: &DualQuat) -> DualQuat {
-        DualQuat::new(
+        DualQuat(
             self.quat_rot().mul(rhs.quat_rot()),
             &self.quat_tra().mul(rhs.quat_rot()) + &self.quat_rot().mul(rhs.quat_tra()),
         )
@@ -207,7 +209,7 @@ impl Mul for &DualQuat {
 impl Add for &DualQuat {
     type Output = DualQuat;
     fn add(self, rhs: &DualQuat) -> DualQuat {
-        DualQuat::new(
+        DualQuat(
             self.quat_rot() + rhs.quat_rot(),
             self.quat_tra() + rhs.quat_tra(),
         )
@@ -217,7 +219,7 @@ impl Add for &DualQuat {
 impl Sub for &DualQuat {
     type Output = DualQuat;
     fn sub(self, rhs: &DualQuat) -> DualQuat {
-        DualQuat::new(
+        DualQuat(
             self.quat_rot() - rhs.quat_rot(),
             self.quat_tra() - rhs.quat_tra(),
         )
