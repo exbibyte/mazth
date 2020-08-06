@@ -1,1 +1,1 @@
-pub const EPS: f64 = 1e-9;
+pub const EPS: f64 = 1e-12;

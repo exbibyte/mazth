@@ -149,18 +149,36 @@ impl Quat {
     pub fn to_rotation_matrix(&self) -> Mat4x4 {
         //assumes unit quaternion
         let a = self.normalize();
+        // Mat4x4::new_r([
+        //     1. - 2. * (a.y() * a.y() + a.z() * a.z()), //first row
+        //     2. * (a.x() * a.y() - a.z() * a.w()),
+        //     2. * (a.x() * a.z() + a.y() * a.w()),
+        //     0.,
+        //     2. * (a.x() * a.y() + a.z() * a.w()), //second row
+        //     1. - 2. * (a.x() * a.x() + a.z() * a.z()),
+        //     2. * (a.y() * a.z() - a.x() * a.w()),
+        //     0.,
+        //     2. * (a.x() * a.z() - a.y() * a.w()), //third row
+        //     2. * (a.z() * a.y() + a.x() * a.w()),
+        //     1. - 2. * (a.x() * a.x() + a.y() * a.y()),
+        //     0.,
+        //     0.,
+        //     0.,
+        //     0.,
+        //     1., //last row
+        // ])
         Mat4x4::new_r([
-            1. - 2. * (a.y() * a.y() + a.z() * a.z()), //first row
-            2. * (a.x() * a.y() - a.z() * a.w()),
-            2. * (a.x() * a.z() + a.y() * a.w()),
+            a.w() * a.w() + a.x() * a.x() - a.y() * a.y() - a.z() * a.z(), //first row
+            2. * (a.x() * a.y() + a.z() * a.w()),
+            2. * (a.x() * a.z() - a.y() * a.w()),
             0.,
-            2. * (a.x() * a.y() + a.z() * a.w()), //second row
-            1. - 2. * (a.x() * a.x() + a.z() * a.z()),
-            2. * (a.y() * a.z() - a.x() * a.w()),
+            2. * (a.x() * a.y() - a.z() * a.w()), //second row
+            a.w() * a.w() + a.y() * a.y() - a.x() * a.x() - a.z() * a.z(),
+            2. * (a.y() * a.z() + a.x() * a.w()),
             0.,
-            2. * (a.x() * a.z() - a.y() * a.w()), //third row
-            2. * (a.z() * a.y() + a.x() * a.w()),
-            1. - 2. * (a.x() * a.x() + a.y() * a.y()),
+            2. * (a.x() * a.z() + a.y() * a.w()), //third row
+            2. * (a.z() * a.y() - a.x() * a.w()),
+            a.w() * a.w() + a.z() * a.z() - a.x() * a.x() - a.y() * a.y(),
             0.,
             0.,
             0.,

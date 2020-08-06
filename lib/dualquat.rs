@@ -48,9 +48,12 @@ impl DualQuat {
     }
     #[allow(dead_code)]
     pub fn new(rotate: Quat, translate: Quat) -> DualQuat {
-        let r = DualQuat::new_from_rot(rotate);
-        let t = DualQuat::new_from_tra(translate);
-        (&t * &r)
+        let t = &translate * &rotate;
+        DualQuat(rotate, t)
+    }
+    #[allow(dead_code)]
+    pub fn new_raw(rotate: Quat, translate: Quat) -> DualQuat {
+        DualQuat(rotate, translate)
     }
     ///returns 4x4 homogeneous matrix
     pub fn xform_rot(&self) -> Mat4x4 {
@@ -60,7 +63,7 @@ impl DualQuat {
     pub fn xform_tra(&self) -> Mat4x1 {
         let a = self.normalize();
         // let b = 2. * &(&a.quat_rot().conjugate() * a.quat_tra());
-        let b = 2. * &(a.quat_tra() * &a.quat_rot().conjugate());
+        let b = &(2. * a.quat_tra()) * &a.quat_rot().conjugate();
         Mat4x1::new([b.x(), b.y(), b.z(), 1.])
     }
     ///returns 4x4 homogeneous matrix
@@ -73,6 +76,7 @@ impl DualQuat {
         b
     }
     pub fn normalize(&self) -> DualQuat {
+        // dbg!(self);
         let l = self.quat_rot().norm();
         assert!(l > EPS);
         let a = self.quat_rot().scale(1. / l);
@@ -87,7 +91,8 @@ impl DualQuat {
     pub fn norm(&self) -> DualScalar {
         DualScalar::new(
             self.quat_rot().norm(),
-            self.quat_rot().dot(self.quat_tra()) / self.quat_rot().norm())
+            self.quat_rot().dot(self.quat_tra()) / self.quat_rot().norm(),
+        )
     }
     pub fn conjugate(&self) -> DualQuat {
         DualQuat(self.quat_rot().conjugate(), self.quat_tra().conjugate())
@@ -97,34 +102,98 @@ impl DualQuat {
             &(self * &DualQuat::new_from_tra(Quat::init_from_translation(p))) * &self.conjugate();
         t.xform_tra().vec3()
     }
+    /// q(q* p)^t
     pub fn sclerp(&self, other: &Self, t: f64) -> DualQuat {
-        self * (&(&self.conjugate() * other).pow(t))
+        // self * (&(&self.conjugate() * other).pow(t))
+
+        // take shortest
+        let dot = self.quat_rot().dot(other.quat_rot());
+        let o;
+        if dot < 0. {
+            o = DualQuat::new_raw(other.quat_rot() * -1., other.quat_tra() * -1.);
+        } else {
+            o = other.clone();
+        }
+
+        let diff = &self.conjugate() * &o;
+
+        self * &diff.pow(t)
     }
     fn pow(&self, e: f64) -> DualQuat {
-        let mut d = self.clone();
+        let vr = Mat3x1::new([
+            self.quat_rot().x(),
+            self.quat_rot().y(),
+            self.quat_rot().z(),
+        ]);
 
-        let mut screwaxis = Matrix1D::from(arr1(&[0., 0., 0.]));
-        let mut moment = Matrix1D::from(arr1(&[0., 0., 0.]));
-        let mut angles = Matrix1D::from(arr1(&[0., 0.]));
+        let vd = Mat3x1::new([
+            self.quat_tra().x(),
+            self.quat_tra().y(),
+            self.quat_tra().z(),
+        ]);
 
-        let norm_a = d.get_screw_parameters(&mut screwaxis, &mut moment, &mut angles);
-
-        // pure translation
-        if norm_a < EPS {
-            *d.quat_tra_mut().x_mut() = d.quat_tra().x() * e;
-            *d.quat_tra_mut().y_mut() = d.quat_tra().y() * e;
-            *d.quat_tra_mut().z_mut() = d.quat_tra().z() * e;
-            d.normalized();
-            d
-        } else {
-            // exponentiate
-            let theta = angles[0] * e;
-            let alpha = angles[1] * e;
-            // convert back
-            d.set_screw_parameters(screwaxis.view(), moment.view(), theta, alpha);
-            d
+        let mut invr = 1. / vr.norm_l2();
+        // dbg!(&diff);
+        // dbg!(&invr);
+        if invr.is_infinite() {
+            //pure translation
+            let mut q = self.clone();
+            *q.quat_tra_mut().x_mut() = q.quat_tra().x() * e;
+            *q.quat_tra_mut().y_mut() = q.quat_tra().y() * e;
+            *q.quat_tra_mut().z_mut() = q.quat_tra().z() * e;
+            return q.normalize();
         }
+
+        // screw
+        let mut angle = 2. * self.quat_rot().w().acos();
+        let mut pitch = -2. * self.quat_tra().w() * invr;
+        let direction = &vr * invr;
+
+        // dbg!(&direction);
+        let moment = &(&vd - &(&(&direction * pitch) * (&self.quat_rot().w() * 0.5))) * invr;
+
+        angle *= e;
+        pitch *= e;
+
+        //convert back
+        let sinAngle = (0.5 * angle).sin();
+        let cosAngle = (0.5 * angle).cos();
+        let temp = &direction * sinAngle;
+        let real = Quat::init_from_vals(temp[0], temp[1], temp[2], cosAngle);
+
+        let temp2 = &(sinAngle * &moment) + &(pitch * 0.5 * cosAngle * &direction);
+        let dual = Quat::init_from_vals(temp2[0], temp2[1], temp2[2], -pitch * 0.5 * sinAngle);
+
+        DualQuat(real, dual)
     }
+    // ///todo: debug this function
+    // fn pow(&self, e: f64) -> DualQuat {
+    //     let mut d = self.clone();
+
+    //     let mut screwaxis = Matrix1D::from(arr1(&[0., 0., 0.]));
+    //     let mut moment = Matrix1D::from(arr1(&[0., 0., 0.]));
+    //     let mut angles = Matrix1D::from(arr1(&[0., 0.]));
+
+    //     let norm_a = d.get_screw_parameters(&mut screwaxis, &mut moment, &mut angles);
+
+    //     // pure translation
+    //     if norm_a < EPS {
+    //         println!("pure translation");
+    //         *d.quat_tra_mut().x_mut() = d.quat_tra().x() * e;
+    //         *d.quat_tra_mut().y_mut() = d.quat_tra().y() * e;
+    //         *d.quat_tra_mut().z_mut() = d.quat_tra().z() * e;
+    //         d.normalized();
+    //         d
+    //     } else {
+    //         // exponentiate
+    //         let theta = angles[0] * e;
+    //         let alpha = angles[1] * e;
+    //         println!("theta, alpha: {:?}, {:?}", &theta, &alpha);
+    //         // convert back
+    //         d.set_screw_parameters(screwaxis.view(), moment.view(), theta, alpha);
+    //         d
+    //     }
+    // }
     fn get_screw_parameters(
         &self,
         screwaxis: &mut Matrix1D,
@@ -147,6 +216,7 @@ impl DualQuat {
 
         // pure translation
         if norm_a < EPS {
+            println!("pure translation");
             let norm_a = q_b.norm_l2();
             *screwaxis = q_b.normalize_l2();
 
@@ -159,9 +229,9 @@ impl DualQuat {
         } else {
             *screwaxis = q_a.normalize_l2();
             angles[0] = 2. * norm_a.atan2(self.quat_rot().w());
-            //      if (angles[0] > Math.PI / 2) {
-            //         angles[0] -= Math.PI;
-            //      }
+            // if (angles[0] > Math.PI / 2) {
+            //    angles[0] -= Math.PI;
+            // }
             angles[1] = -2. * self.quat_tra().w() / norm_a;
             let m1 = 1. / norm_a * q_b;
             let m2 =
@@ -195,13 +265,15 @@ impl DualQuat {
     }
 }
 
-///useful for transforms, eg: p_new = q*p*q', q' := transform, q' := conjugate, p := vector point in dualquat
+///useful for transforms, eg: p_new = q*p*q', q := transform, q' := conjugate, p := vector point in dualquat
 impl Mul for &DualQuat {
     type Output = DualQuat;
     fn mul(self, rhs: &DualQuat) -> DualQuat {
+        let a = self;
+        let b = rhs;
         DualQuat(
-            self.quat_rot().mul(rhs.quat_rot()),
-            &self.quat_tra().mul(rhs.quat_rot()) + &self.quat_rot().mul(rhs.quat_tra()),
+            a.quat_rot().mul(b.quat_rot()),
+            &a.quat_tra().mul(b.quat_rot()) + &a.quat_rot().mul(b.quat_tra()),
         )
     }
 }
