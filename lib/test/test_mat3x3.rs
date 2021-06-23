@@ -65,7 +65,7 @@ fn test_mat3x3() {
     {
         //inverse
         let a = Mat3x3::new_r([3., 3., 3., 0., 6., 0., 0., 0., 9.]);
-        let b = a.inverse().expect("inverse");
+        let b = a.inv().expect("inverse");
         assert!(b.equal(&Mat3x3::new_r([
             1. / 3.,
             -1. / 6.,

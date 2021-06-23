@@ -84,7 +84,7 @@ fn test_mat4x4() {
         let a = Mat4x4::new_r([
             3., 3., 3., 3., 0., 6., 0., 2., 3., 3., 9., 0., 1., 1., 1., 2.,
         ]);
-        let b = a.inverse().expect("inverse");
+        let b = a.inv().expect("inverse");
         assert!(b.equal(&Mat4x4::new_r([
             8. / 9.,
             -1. / 6.,
