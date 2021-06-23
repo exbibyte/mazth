@@ -1328,28 +1328,62 @@ impl Mat3x3 {
         copy
     }
     pub fn inv(&self) -> Result<Mat3x3, &'static str> {
-        use ndarray_linalg::solve::Inverse;
+        // use ndarray_linalg::solve::Inverse;
 
-        let a = arr2(&[
-            [self.0[0], self.0[1], self.0[2]],
-            [self.0[3], self.0[4], self.0[5]],
-            [self.0[6], self.0[7], self.0[8]],
-        ]);
+        // let a = arr2(&[
+        //     [self.0[0], self.0[1], self.0[2]],
+        //     [self.0[3], self.0[4], self.0[5]],
+        //     [self.0[6], self.0[7], self.0[8]],
+        // ]);
 
-        match a.inv() {
-            Ok(c) => Ok(Mat3x3::new_r([
-                c[[0, 0]],
-                c[[0, 1]],
-                c[[0, 2]],
-                c[[1, 0]],
-                c[[1, 1]],
-                c[[1, 2]],
-                c[[2, 0]],
-                c[[2, 1]],
-                c[[2, 2]],
-            ])),
-            Err(_) => Err("inverse error"),
+        // match a.inv() {
+        //     Ok(c) => Ok(Mat3x3::new_r([
+        //         c[[0, 0]],
+        //         c[[0, 1]],
+        //         c[[0, 2]],
+        //         c[[1, 0]],
+        //         c[[1, 1]],
+        //         c[[1, 2]],
+        //         c[[2, 0]],
+        //         c[[2, 1]],
+        //         c[[2, 2]],
+        //     ])),
+        //     Err(_) => Err("inverse error"),
+        // }
+
+        let determinant = self.index([0, 0])
+            * (self.index([1, 1]) * self.index([2, 2]) - self.index([2, 1]) * self.index([1, 2]))
+            - self.index([1, 0])
+                * (self.index([0, 1]) * self.index([2, 2])
+                    - self.index([2, 1]) * self.index([0, 2]))
+            + self.index([2, 0])
+                * (self.index([0, 1]) * self.index([1, 2])
+                    - self.index([1, 1]) * self.index([0, 2]));
+        if (determinant < 0.0000000001) && (determinant > -0.00000000001) {
+            return Err("det too small");
         }
+        let t = self;
+        let mut out = Mat3x3::default();
+        *out.index_mut([0, 0]) =
+            t.index([1, 1]) * t.index([2, 2]) - t.index([2, 1]) * t.index([1, 2]);
+        *out.index_mut([1, 0]) =
+            -(t.index([0, 1]) * t.index([2, 2]) - t.index([2, 1]) * t.index([0, 2]));
+        *out.index_mut([2, 0]) =
+            t.index([0, 1]) * t.index([1, 2]) - t.index([1, 1]) * t.index([0, 2]);
+        *out.index_mut([0, 1]) =
+            -(t.index([1, 0]) * t.index([2, 2]) - t.index([2, 0]) * t.index([1, 2]));
+        *out.index_mut([1, 1]) =
+            t.index([0, 0]) * t.index([2, 2]) - t.index([2, 0]) * t.index([0, 2]);
+        *out.index_mut([2, 1]) =
+            -(t.index([0, 0]) * t.index([1, 2]) - t.index([1, 0]) * t.index([0, 2]));
+        *out.index_mut([0, 2]) =
+            t.index([1, 0]) * t.index([2, 1]) - t.index([2, 0]) * t.index([1, 1]);
+        *out.index_mut([1, 2]) =
+            -(t.index([0, 0]) * t.index([2, 1]) - t.index([2, 0]) * t.index([0, 1]));
+        *out.index_mut([2, 2]) =
+            t.index([0, 0]) * t.index([1, 1]) - t.index([1, 0]) * t.index([0, 1]);
+
+        Ok((&out / determinant).t())
     }
     pub fn sum(&self) -> f64 {
         self.0.iter().sum()
@@ -1760,36 +1794,275 @@ impl Mat4x4 {
         copy
     }
     pub fn inv(&self) -> Result<Mat4x4, &'static str> {
-        use ndarray_linalg::solve::Inverse;
+        // use ndarray_linalg::solve::Inverse;
 
-        let a = arr2(&[
-            [self.0[0], self.0[1], self.0[2], self.0[3]],
-            [self.0[4], self.0[5], self.0[6], self.0[7]],
-            [self.0[8], self.0[9], self.0[10], self.0[11]],
-            [self.0[12], self.0[13], self.0[14], self.0[15]],
-        ]);
+        // let a = arr2(&[
+        //     [self.0[0], self.0[1], self.0[2], self.0[3]],
+        //     [self.0[4], self.0[5], self.0[6], self.0[7]],
+        //     [self.0[8], self.0[9], self.0[10], self.0[11]],
+        //     [self.0[12], self.0[13], self.0[14], self.0[15]],
+        // ]);
 
-        match a.inv() {
-            Ok(c) => Ok(Mat4x4::new_r([
-                c[[0, 0]],
-                c[[0, 1]],
-                c[[0, 2]],
-                c[[0, 3]],
-                c[[1, 0]],
-                c[[1, 1]],
-                c[[1, 2]],
-                c[[1, 3]],
-                c[[2, 0]],
-                c[[2, 1]],
-                c[[2, 2]],
-                c[[2, 3]],
-                c[[3, 0]],
-                c[[3, 1]],
-                c[[3, 2]],
-                c[[3, 3]],
-            ])),
-            Err(_) => Err("inverse error"),
+        // match a.inv() {
+        //     Ok(c) => Ok(Mat4x4::new_r([
+        //         c[[0, 0]],
+        //         c[[0, 1]],
+        //         c[[0, 2]],
+        //         c[[0, 3]],
+        //         c[[1, 0]],
+        //         c[[1, 1]],
+        //         c[[1, 2]],
+        //         c[[1, 3]],
+        //         c[[2, 0]],
+        //         c[[2, 1]],
+        //         c[[2, 2]],
+        //         c[[2, 3]],
+        //         c[[3, 0]],
+        //         c[[3, 1]],
+        //         c[[3, 2]],
+        //         c[[3, 3]],
+        //     ])),
+        //     Err(_) => Err("inverse error"),
+        // }
+        let mut inv = Mat4x4::default();
+        let m = self;
+
+        inv[[0, 0]] = m[[1, 1]] * m[[2, 2]] * m[[3, 3]]
+            - m[[1, 1]] * m[[2, 3]] * m[[3, 2]]
+            - m[[2, 1]] * m[[1, 2]] * m[[3, 3]]
+            + m[[2, 1]] * m[[1, 3]] * m[[3, 2]]
+            + m[[3, 1]] * m[[1, 2]] * m[[2, 3]]
+            - m[[3, 1]] * m[[1, 3]] * m[[2, 2]];
+
+        inv[[1, 0]] = -m[[1, 0]] * m[[2, 2]] * m[[3, 3]]
+            + m[[1, 0]] * m[[2, 3]] * m[[3, 2]]
+            + m[[2, 0]] * m[[1, 2]] * m[[3, 3]]
+            - m[[2, 0]] * m[[1, 3]] * m[[3, 2]]
+            - m[[3, 0]] * m[[1, 2]] * m[[2, 3]]
+            + m[[3, 0]] * m[[1, 3]] * m[[2, 2]];
+
+        inv[[2, 0]] = m[[1, 0]] * m[[2, 1]] * m[[3, 3]]
+            - m[[1, 0]] * m[[2, 3]] * m[[3, 1]]
+            - m[[2, 0]] * m[[1, 1]] * m[[3, 3]]
+            + m[[2, 0]] * m[[1, 3]] * m[[3, 1]]
+            + m[[3, 0]] * m[[1, 1]] * m[[2, 3]]
+            - m[[3, 0]] * m[[1, 3]] * m[[2, 1]];
+
+        inv[[3, 0]] = -m[[1, 0]] * m[[2, 1]] * m[[3, 2]]
+            + m[[1, 0]] * m[[2, 2]] * m[[3, 1]]
+            + m[[2, 0]] * m[[1, 1]] * m[[3, 2]]
+            - m[[2, 0]] * m[[1, 2]] * m[[3, 1]]
+            - m[[3, 0]] * m[[1, 1]] * m[[2, 2]]
+            + m[[3, 0]] * m[[1, 2]] * m[[2, 1]];
+
+        inv[[0, 1]] = -m[[0, 1]] * m[[2, 2]] * m[[3, 3]]
+            + m[[0, 1]] * m[[2, 3]] * m[[3, 2]]
+            + m[[2, 1]] * m[[0, 2]] * m[[3, 3]]
+            - m[[2, 1]] * m[[0, 3]] * m[[3, 2]]
+            - m[[3, 1]] * m[[0, 2]] * m[[2, 3]]
+            + m[[3, 1]] * m[[0, 3]] * m[[2, 2]];
+
+        inv[[1, 1]] = m[[0, 0]] * m[[2, 2]] * m[[3, 3]]
+            - m[[0, 0]] * m[[2, 3]] * m[[3, 2]]
+            - m[[2, 0]] * m[[0, 2]] * m[[3, 3]]
+            + m[[2, 0]] * m[[0, 3]] * m[[3, 2]]
+            + m[[3, 0]] * m[[0, 2]] * m[[2, 3]]
+            - m[[3, 0]] * m[[0, 3]] * m[[2, 2]];
+
+        inv[[2, 1]] = -m[[0, 0]] * m[[2, 1]] * m[[3, 3]]
+            + m[[0, 0]] * m[[2, 3]] * m[[3, 1]]
+            + m[[2, 0]] * m[[0, 1]] * m[[3, 3]]
+            - m[[2, 0]] * m[[0, 3]] * m[[3, 1]]
+            - m[[3, 0]] * m[[0, 1]] * m[[2, 3]]
+            + m[[3, 0]] * m[[0, 3]] * m[[2, 1]];
+
+        inv[[3, 1]] = m[[0, 0]] * m[[2, 1]] * m[[3, 2]]
+            - m[[0, 0]] * m[[2, 2]] * m[[3, 1]]
+            - m[[2, 0]] * m[[0, 1]] * m[[3, 2]]
+            + m[[2, 0]] * m[[0, 2]] * m[[3, 1]]
+            + m[[3, 0]] * m[[0, 1]] * m[[2, 2]]
+            - m[[3, 0]] * m[[0, 2]] * m[[2, 1]];
+
+        inv[[0, 2]] = m[[0, 1]] * m[[1, 2]] * m[[3, 3]]
+            - m[[0, 1]] * m[[1, 3]] * m[[3, 2]]
+            - m[[1, 1]] * m[[0, 2]] * m[[3, 3]]
+            + m[[1, 1]] * m[[0, 3]] * m[[3, 2]]
+            + m[[3, 1]] * m[[0, 2]] * m[[1, 3]]
+            - m[[3, 1]] * m[[0, 3]] * m[[1, 2]];
+
+        inv[[1, 2]] = -m[[0, 0]] * m[[1, 2]] * m[[3, 3]]
+            + m[[0, 0]] * m[[1, 3]] * m[[3, 2]]
+            + m[[1, 0]] * m[[0, 2]] * m[[3, 3]]
+            - m[[1, 0]] * m[[0, 3]] * m[[3, 2]]
+            - m[[3, 0]] * m[[0, 2]] * m[[1, 3]]
+            + m[[3, 0]] * m[[0, 3]] * m[[1, 2]];
+
+        inv[[2, 2]] = m[[0, 0]] * m[[1, 1]] * m[[3, 3]]
+            - m[[0, 0]] * m[[1, 3]] * m[[3, 1]]
+            - m[[1, 0]] * m[[0, 1]] * m[[3, 3]]
+            + m[[1, 0]] * m[[0, 3]] * m[[3, 1]]
+            + m[[3, 0]] * m[[0, 1]] * m[[1, 3]]
+            - m[[3, 0]] * m[[0, 3]] * m[[1, 1]];
+
+        inv[[3, 2]] = -m[[0, 0]] * m[[1, 1]] * m[[3, 2]]
+            + m[[0, 0]] * m[[1, 2]] * m[[3, 1]]
+            + m[[1, 0]] * m[[0, 1]] * m[[3, 2]]
+            - m[[1, 0]] * m[[0, 2]] * m[[3, 1]]
+            - m[[3, 0]] * m[[0, 1]] * m[[1, 2]]
+            + m[[3, 0]] * m[[0, 2]] * m[[1, 1]];
+
+        inv[[0, 3]] = -m[[0, 1]] * m[[1, 2]] * m[[2, 3]]
+            + m[[0, 1]] * m[[1, 3]] * m[[2, 2]]
+            + m[[1, 1]] * m[[0, 2]] * m[[2, 3]]
+            - m[[1, 1]] * m[[0, 3]] * m[[2, 2]]
+            - m[[2, 1]] * m[[0, 2]] * m[[1, 3]]
+            + m[[2, 1]] * m[[0, 3]] * m[[1, 2]];
+
+        inv[[1, 3]] = m[[0, 0]] * m[[1, 2]] * m[[2, 3]]
+            - m[[0, 0]] * m[[1, 3]] * m[[2, 2]]
+            - m[[1, 0]] * m[[0, 2]] * m[[2, 3]]
+            + m[[1, 0]] * m[[0, 3]] * m[[2, 2]]
+            + m[[2, 0]] * m[[0, 2]] * m[[1, 3]]
+            - m[[2, 0]] * m[[0, 3]] * m[[1, 2]];
+
+        inv[[2, 3]] = -m[[0, 0]] * m[[1, 1]] * m[[2, 3]]
+            + m[[0, 0]] * m[[1, 3]] * m[[2, 1]]
+            + m[[1, 0]] * m[[0, 1]] * m[[2, 3]]
+            - m[[1, 0]] * m[[0, 3]] * m[[2, 1]]
+            - m[[2, 0]] * m[[0, 1]] * m[[1, 3]]
+            + m[[2, 0]] * m[[0, 3]] * m[[1, 1]];
+
+        inv[[3, 3]] = m[[0, 0]] * m[[1, 1]] * m[[2, 2]]
+            - m[[0, 0]] * m[[1, 2]] * m[[2, 1]]
+            - m[[1, 0]] * m[[0, 1]] * m[[2, 2]]
+            + m[[1, 0]] * m[[0, 2]] * m[[2, 1]]
+            + m[[2, 0]] * m[[0, 1]] * m[[1, 2]]
+            - m[[2, 0]] * m[[0, 2]] * m[[1, 1]];
+
+        // *inv.index_mut([0, 0]) = self.index([1, 1]) * self.index([2, 2]) * self.index([3, 3])
+        //     - self.index([1, 1]) * self.index([3, 2]) * self.index([2, 3])
+        //     - self.index([1, 2]) * self.index([2, 1]) * self.index([3, 3])
+        //     + self.index([1, 2]) * self.index([3, 1]) * self.index([2, 3])
+        //     + self.index([1, 3]) * self.index([2, 1]) * self.index([3, 2])
+        //     - self.index([1, 3]) * self.index([3, 1]) * self.index([2, 2]);
+
+        // *inv.index_mut([1, 0]) = -(self.index([0, 1]) * self.index([2, 2]) * self.index([3, 3])
+        //     + self.index([0, 1]) * self.index([3, 2]) * self.index([2, 3])
+        //     + self.index([0, 2]) * self.index([2, 1]) * self.index([3, 3])
+        //     - self.index([0, 2]) * self.index([3, 1]) * self.index([2, 3])
+        //     - self.index([0, 3]) * self.index([2, 1]) * self.index([3, 2])
+        //     + self.index([0, 3]) * self.index([3, 1]) * self.index([2, 2]));
+
+        // *inv.index_mut([2, 0]) = self.index([0, 1]) * self.index([1, 2]) * self.index([3, 3])
+        //     - self.index([0, 1]) * self.index([3, 2]) * self.index([1, 3])
+        //     - self.index([0, 2]) * self.index([1, 1]) * self.index([3, 3])
+        //     + self.index([0, 2]) * self.index([3, 1]) * self.index([1, 3])
+        //     + self.index([0, 3]) * self.index([1, 1]) * self.index([3, 2])
+        //     - self.index([0, 3]) * self.index([3, 1]) * self.index([1, 2]);
+
+        // *inv.index_mut([3, 0]) = -self.index([0, 1]) * self.index([1, 2]) * self.index([2, 3])
+        //     + self.index([0, 1]) * self.index([2, 2]) * self.index([1, 3])
+        //     + self.index([0, 2]) * self.index([1, 1]) * self.index([2, 3])
+        //     - self.index([0, 2]) * self.index([2, 1]) * self.index([1, 3])
+        //     - self.index([0, 3]) * self.index([1, 1]) * self.index([2, 2])
+        //     + self.index([0, 3]) * self.index([2, 1]) * self.index([1, 2]);
+
+        // *inv.index_mut([0, 1]) = -self.index([1, 0]) * self.index([2, 2]) * self.index([3, 3])
+        //     + self.index([1, 0]) * self.index([3, 2]) * self.index([2, 3])
+        //     + self.index([1, 2]) * self.index([2, 0]) * self.index([3, 3])
+        //     - self.index([1, 2]) * self.index([3, 0]) * self.index([2, 3])
+        //     - self.index([1, 3]) * self.index([2, 0]) * self.index([3, 2])
+        //     + self.index([1, 3]) * self.index([3, 0]) * self.index([2, 2]);
+
+        // *inv.index_mut([1, 1]) = self.index([0, 0]) * self.index([2, 2]) * self.index([3, 3])
+        //     - self.index([0, 0]) * self.index([3, 2]) * self.index([2, 3])
+        //     - self.index([0, 2]) * self.index([2, 0]) * self.index([3, 3])
+        //     + self.index([0, 2]) * self.index([3, 0]) * self.index([2, 3])
+        //     + self.index([0, 3]) * self.index([2, 0]) * self.index([3, 2])
+        //     - self.index([0, 3]) * self.index([3, 0]) * self.index([2, 2]);
+
+        // *inv.index_mut([1, 2]) = -self.index([0, 0]) * self.index([1, 2]) * self.index([3, 3])
+        //     + self.index([0, 0]) * self.index([3, 2]) * self.index([1, 3])
+        //     + self.index([0, 2]) * self.index([1, 0]) * self.index([3, 3])
+        //     - self.index([0, 2]) * self.index([3, 0]) * self.index([1, 3])
+        //     - self.index([0, 3]) * self.index([1, 0]) * self.index([3, 2])
+        //     + self.index([0, 3]) * self.index([3, 0]) * self.index([1, 2]);
+
+        // *inv.index_mut([1, 3]) = self.index([0, 0]) * self.index([1, 2]) * self.index([2, 3])
+        //     - self.index([0, 0]) * self.index([2, 2]) * self.index([1, 3])
+        //     - self.index([0, 2]) * self.index([1, 0]) * self.index([2, 3])
+        //     + self.index([0, 2]) * self.index([2, 0]) * self.index([1, 3])
+        //     + self.index([0, 3]) * self.index([1, 0]) * self.index([2, 2])
+        //     - self.index([0, 3]) * self.index([2, 0]) * self.index([1, 2]);
+
+        // *inv.index_mut([2, 0]) = self.index([1, 0]) * self.index([2, 1]) * self.index([3, 3])
+        //     - self.index([1, 0]) * self.index([3, 1]) * self.index([2, 3])
+        //     - self.index([1, 1]) * self.index([2, 0]) * self.index([3, 3])
+        //     + self.index([1, 1]) * self.index([3, 0]) * self.index([2, 3])
+        //     + self.index([1, 3]) * self.index([2, 0]) * self.index([3, 1])
+        //     - self.index([1, 3]) * self.index([3, 0]) * self.index([2, 1]);
+
+        // *inv.index_mut([2, 1]) = -self.index([0, 0]) * self.index([2, 1]) * self.index([3, 3])
+        //     + self.index([0, 0]) * self.index([3, 1]) * self.index([2, 3])
+        //     + self.index([0, 1]) * self.index([2, 0]) * self.index([3, 3])
+        //     - self.index([0, 1]) * self.index([3, 0]) * self.index([2, 3])
+        //     - self.index([0, 3]) * self.index([2, 0]) * self.index([3, 1])
+        //     + self.index([0, 3]) * self.index([3, 0]) * self.index([2, 1]);
+
+        // *inv.index_mut([2, 2]) = self.index([0, 0]) * self.index([1, 1]) * self.index([3, 3])
+        //     - self.index([0, 0]) * self.index([3, 1]) * self.index([1, 3])
+        //     - self.index([0, 1]) * self.index([1, 0]) * self.index([3, 3])
+        //     + self.index([0, 1]) * self.index([3, 0]) * self.index([1, 3])
+        //     + self.index([0, 3]) * self.index([1, 0]) * self.index([3, 1])
+        //     - self.index([0, 3]) * self.index([3, 0]) * self.index([1, 1]);
+
+        // *inv.index_mut([2, 3]) = -self.index([0, 0]) * self.index([1, 1]) * self.index([2, 3])
+        //     + self.index([0, 0]) * self.index([2, 1]) * self.index([1, 3])
+        //     + self.index([0, 1]) * self.index([1, 0]) * self.index([2, 3])
+        //     - self.index([0, 1]) * self.index([2, 0]) * self.index([1, 3])
+        //     - self.index([0, 3]) * self.index([1, 0]) * self.index([2, 1])
+        //     + self.index([0, 3]) * self.index([2, 0]) * self.index([1, 1]);
+
+        // *inv.index_mut([3, 0]) = -self.index([1, 0]) * self.index([2, 1]) * self.index([3, 2])
+        //     + self.index([1, 0]) * self.index([3, 1]) * self.index([2, 2])
+        //     + self.index([1, 1]) * self.index([2, 0]) * self.index([3, 2])
+        //     - self.index([1, 1]) * self.index([3, 0]) * self.index([2, 2])
+        //     - self.index([1, 2]) * self.index([2, 0]) * self.index([3, 1])
+        //     + self.index([1, 2]) * self.index([3, 0]) * self.index([2, 1]);
+
+        // *inv.index_mut([3, 1]) = self.index([0, 0]) * self.index([2, 1]) * self.index([3, 2])
+        //     - self.index([0, 0]) * self.index([3, 1]) * self.index([2, 2])
+        //     - self.index([0, 1]) * self.index([2, 0]) * self.index([3, 2])
+        //     + self.index([0, 1]) * self.index([3, 0]) * self.index([2, 2])
+        //     + self.index([0, 2]) * self.index([2, 0]) * self.index([3, 1])
+        //     - self.index([0, 2]) * self.index([3, 0]) * self.index([2, 1]);
+
+        // *inv.index_mut([3, 2]) = -self.index([0, 0]) * self.index([1, 1]) * self.index([3, 2])
+        //     + self.index([0, 0]) * self.index([3, 1]) * self.index([1, 2])
+        //     + self.index([0, 1]) * self.index([1, 0]) * self.index([3, 2])
+        //     - self.index([0, 1]) * self.index([3, 0]) * self.index([1, 2])
+        //     - self.index([0, 2]) * self.index([1, 0]) * self.index([3, 1])
+        //     + self.index([0, 2]) * self.index([3, 0]) * self.index([1, 1]);
+
+        // *inv.index_mut([3, 3]) = self.index([0, 0]) * self.index([1, 1]) * self.index([2, 2])
+        //     - self.index([0, 0]) * self.index([2, 1]) * self.index([1, 2])
+        //     - self.index([0, 1]) * self.index([1, 0]) * self.index([2, 2])
+        //     + self.index([0, 1]) * self.index([2, 0]) * self.index([1, 2])
+        //     + self.index([0, 2]) * self.index([1, 0]) * self.index([2, 1])
+        //     - self.index([0, 2]) * self.index([2, 0]) * self.index([1, 1]);
+
+        let det = self[[0, 0]] * inv[[0, 0]]
+            + self[[0, 1]] * inv[[1, 0]]
+            + self[[0, 2]] * inv[[2, 0]]
+            + self[[0, 3]] * inv[[3, 0]];
+
+        if det.abs() < 1e-15 {
+            return Err("det too small");
         }
+
+        let det_2 = 1.0 / det;
+
+        Ok((&inv) / det_2)
     }
     ///extract upper left 3x3 matrix
     pub fn sub_rot(&self) -> Mat3x3 {
